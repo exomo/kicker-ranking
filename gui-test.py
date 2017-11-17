@@ -1,5 +1,7 @@
 import tkinter as tk                # python 3
 from tkinter import font  as tkfont # python 3
+from tkinter import ttk
+from tkinter.messagebox import showinfo
 
 import time
 import donglebert
@@ -10,6 +12,7 @@ import donglebert
 LARGE_FONT= ("Verdana", 12)
 NORM_FONT= ("Verdana", 10)
 SMALL_FONT= ("Verdana", 8)
+
 
 class KickerApp(tk.Tk):
 
@@ -181,16 +184,38 @@ class NewGamePage(tk.Frame):
 
 
 class PlayerPage(tk.Frame):
+ 
+        def __init__(self, parent, controller):
+            tk.Frame.__init__(self, parent)
+            self.controller = controller
+            label = tk.Label(self, text="Rangliste:", font="Helvetica 12")
+            label.pack(side="top", fill="x", pady=10)
+            button = tk.Button(self, text="Neuer Spieler",command=popup_bonus)
+            button.pack()
+        def popup_bonus():
+            win = tk.Toplevel()
+            win.wm_title("Window")
+        
+            l = tk.Label(win, text="Please Scan Token")
+            l.grid(row=0, column=0)
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.controller = controller
-        label = tk.Label(self, text="Rangliste:", font="Helvetica 12")
-        label.pack(side="top", fill="x", pady=10)
-        button = tk.Button(self, text="Neuer Spieler",
-                           command=lambda: controller.show_frame("GamePage"))
-        button.pack()
+            b = tk.Button(win, text="Okay", command=NewGamePlayer)
+            b.grid(row=1, column=0)
+        def NewGamePlayer():
+            win = tk.Toplevel()
+            win.wm_title("NameGiver")
+            l = tk.Label(win, text="Enter ID:")
+            l.grid(row=0, column=0)
+            e1 = tk.Entry(win,text="Enter Name")
+            e1.grid(row=0, column=1)
+            l = tk.Label(win, text="Enter Name:")
+            l.grid(row=1, column=0)
+            e2 = tk.Entry(win,text="Enter Surname")
+            e2.grid(row=1, column=1)
+            b = tk.Button(win, text="Okay", command=win.destroy)
+            b.grid(row=2, column=0)
 
+        
 
 class NewPlayerPage(tk.Frame):
 

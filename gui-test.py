@@ -1,13 +1,18 @@
 import tkinter as tk                # python 3
 from tkinter import font  as tkfont # python 3
+from tkinter import ttk
+from tkinter.messagebox import showinfo
 
 import time
+import donglebert
+# import rfid
 #import Tkinter as tk     # python 2
 #import tkFont as tkfont  # python 2
 
 LARGE_FONT= ("Verdana", 12)
 NORM_FONT= ("Verdana", 10)
 SMALL_FONT= ("Verdana", 8)
+
 
 class KickerApp(tk.Tk):
 
@@ -106,7 +111,12 @@ class GamePage(tk.Frame):
             # spiel-objekt anlegen
             controller.show_frame("NewGamePage")
             
+            kickerDB = "kicker_scores.db"
+
+            db = donglebert.Database(kickerDB)
+
             IDpopup("Bitte Token von Spieler 1 scannen.")
+            db.get_player(id)
         
             # read first token
             # spiel.spieler1 = getPlayer(getTokenID())
@@ -174,16 +184,45 @@ class NewGamePage(tk.Frame):
 
 
 class PlayerPage(tk.Frame):
+ 
+        def __init__(self, parent, controller):
+            tk.Frame.__init__(self, parent)
+            self.controller = controller
+            label = tk.Label(self, text="Rangliste:", font="Helvetica 12")
+            label.pack(side="top", fill="x", pady=10)
+            button = tk.Button(self, text="Neuer Spieler",command=self.popup_bonus)
+            button.pack()
+        def popup_bonus(self):
+            self.win = tk.Toplevel()
+            self.win.wm_title("Window")
+        
+            l = tk.Label(self.win, text="Please Scan Token")
+            l.grid(row=0, column=0)
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.controller = controller
-        label = tk.Label(self, text="Rangliste:", font="Helvetica 12")
-        label.pack(side="top", fill="x", pady=10)
-        button = tk.Button(self, text="Neuer Spieler",
-                           command=lambda: controller.show_frame("GamePage"))
-        button.pack()
+            b = tk.Button(self.win, text="Okay", command=self.NewGamePlayer)
+            b.grid(row=1, column=0)
+        def NewGamePlayer(self):
+            self.win.destroy()
+            self.win = tk.Toplevel()
+            self.win.wm_title("NameGiver")
+            l = tk.Label(self.win, text="Enter ID:")
+            l.grid(row=0, column=0)
+            self.e1 = tk.Entry(self.win,text="Enter Name")
+            self.e1.grid(row=0, column=1)
+            l = tk.Label(self.win, text="Enter Name:")
+            l.grid(row=1, column=0)
+            self.e2 = tk.Entry(self.win,text="Enter Surname")
+            self.e2.grid(row=1, column=1)
+            b = tk.Button(self.win, text="Okay", command=self.Safe2DataBase)
+            b.grid(row=2, column=0)
+        def Safe2DataBase(self):
+            print("ID: %s\nLast Name: %s" % (self.e1.get(), self.e2.get()))
+            kickerDB = "kicker_scores.db"
+            db = donglebert.Database(kickerDB)
+            db.add_new_player(self.e1.get(), self.e2.get())
+            self.win.destroy()
 
+        
 
 class NewPlayerPage(tk.Frame):
 

@@ -94,8 +94,61 @@ class GamePage(tk.Frame):
         button1.pack(side="left", fill="both", expand=True)
 
         def newGame():
+            win = tk.Toplevel()
+            win.wm_title("Window")
+
+            # spiel-objekt anlegen
             controller.show_frame("NewGamePage")
-            # read first token
+
+            if numPlayers == 0:
+                l = tk.Label(win, text="Bitte Token von Spieler 1 scannen.")
+                l.grid(row=0, column=0)
+
+                b = tk.Button(win, text="Okay", command=win.destroy)
+                b.grid(row=1, column=0)
+            
+                # read first token
+                # spiel.spieler1 = getPlayer(getTokenID())
+                # win.destroy
+                # numPlayers++
+            elif numPlayers == 1:
+                l = tk.Label(win, text="Bitte Token von Spieler 2 scannen.")
+                l.grid(row=0, column=0)
+
+                b = tk.Button(win, text="Okay", command=win.destroy)
+                b.grid(row=1, column=0)
+
+                # read second token
+                # spiel.spieler2 = getPlayer(getTokenID())
+                # check for duplicates
+                # win.destroy
+                # numPlayers++
+            elif numPlayers == 2:
+                l = tk.Label(win, text="Bitte Token von Spieler 3 scannen.")
+                l.grid(row=0, column=0)
+
+                b = tk.Button(win, text="Okay", command=win.destroy)
+                b.grid(row=1, column=0)
+
+                # read third token
+                # spiel.spieler3 = getPlayer(getTokenID())
+                # check for duplicates
+                # win.destroy
+                # numPlayers++
+            elif numPlayers == 3:
+                l = tk.Label(win, text="Bitte Token von Spieler 4 scannen.")
+                l.grid(row=0, column=0)
+
+                b = tk.Button(win, text="Okay", command=win.destroy)
+                b.grid(row=1, column=0)
+
+                # read fourth token
+                # spiel.spieler4 = getPlayer(getTokenID())
+                # check for duplicates
+                # win.destroy
+                # numPlayers++
+            # else:
+                # do nothing
 
 class NewGamePage(tk.Frame):
     def __init__(self, parent, controller):
@@ -124,7 +177,7 @@ class PlayerPage(tk.Frame):
         self.controller = controller
         label = tk.Label(self, text="Rangliste:", font="Helvetica 12")
         label.pack(side="top", fill="x", pady=10)
-        button = tk.Button(self, text="Go to the start page",
+        button = tk.Button(self, text="Neuer Spieler",
                            command=lambda: controller.show_frame("GamePage"))
         button.pack()
 

@@ -11,7 +11,7 @@ class Player():
         self._tokenID = 0
         self._gamerScore = 0.0
         self._standardDeviation = 0.0
-
+        
     # setter-, getter-methodes 
     # -------------------------------------------------------------------------------------------------------------------------------------
     def set_name(self, name):
@@ -37,6 +37,9 @@ class Player():
     
     def get_standardDeviation(self):
         return self._standardDeviation
+    
+    
+    
     # -------------------------------------------------------------------------------------------------------------------------------------
     
     # properties
@@ -52,4 +55,5 @@ class Player():
         print("Token ID:", self.tokenID)
         print("Gamer Score:", self.gamerScore)
         print("Standard Deviation:", self.standardDeviation)
+        print("Team:", self._team)
         print()

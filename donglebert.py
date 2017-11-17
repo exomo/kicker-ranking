@@ -1,6 +1,8 @@
-import sqlite3
 
-class KickerDb:
+import sqlite3
+import player
+
+class Database():
     def __init__(self, filename):
         self.database = sqlite3.connect(filename)
 
@@ -22,14 +24,14 @@ class KickerDb:
         cur.execute("SELECT * FROM players WHERE token_id=?", [id])
         result = cur.fetchone()
         if result != None:
-            return Player(result[0], result[1], result[2], result[3])
+            return self.create_player(result)
         else:
             return None
 
     def get_all_players(self):
         cur = self.database.cursor()
         cur.execute("SELECT * FROM players")
-        return cur.fetchall().apply(lambda p: Player(result[0], result[1], result[2], result[3]))
+        return cur.fetchall().apply(lambda p: self.create_player(p))
 
     def show_players(self):
         print("List of all players")
@@ -39,19 +41,10 @@ class KickerDb:
         for player in cur.fetchall():
             print(player)
 
-
-def main():
-    player_db = KickerDb("kicker_scores.db")
-    # player_db.add_new_player('thomas', "0815")
-
-    player_db.show_players()
-
-    p1 = player_db.get_player("0815")
-    p2 = player_db.get_player("0817")
-
-    if(p1):
-        p1.show_player()
-    if(p2):
-        p2.show_player()
-
-main()
+    def create_player(self, db_result):
+        p = player.Player()
+        p.name = db_result[0]
+        p.tokenID = db_result[1]
+        p.gamerScore = db_result[2]
+        p.standardDeviation = db_result[3]
+        return p

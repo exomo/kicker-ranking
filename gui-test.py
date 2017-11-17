@@ -2,6 +2,8 @@ import tkinter as tk                # python 3
 from tkinter import font  as tkfont # python 3
 
 import time
+import donglebert
+# import rfid
 #import Tkinter as tk     # python 2
 #import tkFont as tkfont  # python 2
 
@@ -106,7 +108,12 @@ class GamePage(tk.Frame):
             # spiel-objekt anlegen
             controller.show_frame("NewGamePage")
             
+            kickerDB = "kicker_scores.db"
+
+            db = donglebert.Database(kickerDB)
+
             IDpopup("Bitte Token von Spieler 1 scannen.")
+            db.get_player(id)
         
             # read first token
             # spiel.spieler1 = getPlayer(getTokenID())

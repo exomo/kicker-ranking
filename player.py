@@ -55,5 +55,4 @@ class Player():
         print("Token ID:", self.tokenID)
         print("Gamer Score:", self.gamerScore)
         print("Standard Deviation:", self.standardDeviation)
-        print("Team:", self._team)
         print()

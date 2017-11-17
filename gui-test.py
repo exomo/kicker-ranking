@@ -5,7 +5,7 @@ from tkinter.messagebox import showinfo
 
 import time
 import donglebert
-# import rfid
+import rfid
 #import Tkinter as tk     # python 2
 #import tkFont as tkfont  # python 2
 
@@ -199,27 +199,34 @@ class PlayerPage(tk.Frame):
             l = tk.Label(self.win, text="Please Scan Token")
             l.grid(row=0, column=0)
 
-            b = tk.Button(self.win, text="Okay", command=self.NewGamePlayer)
+            self.after(100, self.SkanToken)
+
+            b = tk.Button(self.win, text="Abbrechen", command=self.win.destroy)
             b.grid(row=1, column=0)
+
+        def SkanToken(self):
+            tokenLeser = rfid.rfid()
+            self.token = tokenLeser.TryGetToken()
+            if(self.token != None):
+                self.NewGamePlayer()
+            else:
+                self.after(100, self.SkanToken)
+        
         def NewGamePlayer(self):
             self.win.destroy()
             self.win = tk.Toplevel()
             self.win.wm_title("NameGiver")
-            l = tk.Label(self.win, text="Enter ID:")
-            l.grid(row=0, column=0)
-            self.e1 = tk.Entry(self.win,text="Enter Name")
-            self.e1.grid(row=0, column=1)
             l = tk.Label(self.win, text="Enter Name:")
             l.grid(row=1, column=0)
-            self.e2 = tk.Entry(self.win,text="Enter Surname")
+            self.e2 = tk.Entry(self.win,text="Enter Name")
             self.e2.grid(row=1, column=1)
             b = tk.Button(self.win, text="Okay", command=self.Safe2DataBase)
             b.grid(row=2, column=0)
         def Safe2DataBase(self):
-            print("ID: %s\nLast Name: %s" % (self.e1.get(), self.e2.get()))
+            print("ID: %s\nLast Name: %s" % (self.token, self.e2.get()))
             kickerDB = "kicker_scores.db"
             db = donglebert.Database(kickerDB)
-            db.add_new_player(self.e1.get(), self.e2.get())
+            db.add_new_player(self.e2.get(), self.token)
             self.win.destroy()
 
         

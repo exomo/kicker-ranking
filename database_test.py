@@ -8,8 +8,8 @@ def main(argv):
 
     player_db.show_players()
 
-    p1 = player_db.get_player("1325")
-    p2 = player_db.get_player("1337")
+    p1 = player_db.get_player("9876")
+    p2 = player_db.get_player("123456")
 
     if(p1):
         p1.show_player()

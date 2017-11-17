@@ -4,15 +4,17 @@ Spyder Editor
 
 This is a temporary script file.
 """
-import nxppy
+# import nxppy
 import time
 
-class rfid:
-    def __init__():
-        mifare = nxppy.Mifare()
+class rfid():
+    def __init__(self):
+        print("init")
+        # mifare = nxppy.Mifare()
         
-    def getId():
-        
-        uid = mifare.select()
+    def TryGetToken(self):
+        time.sleep(2)
+        uid = "123456"
+        # uid = mifare.select()
         
         return uid 

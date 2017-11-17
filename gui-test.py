@@ -190,30 +190,37 @@ class PlayerPage(tk.Frame):
             self.controller = controller
             label = tk.Label(self, text="Rangliste:", font="Helvetica 12")
             label.pack(side="top", fill="x", pady=10)
-            button = tk.Button(self, text="Neuer Spieler",command=popup_bonus)
+            button = tk.Button(self, text="Neuer Spieler",command=self.popup_bonus)
             button.pack()
-        def popup_bonus():
-            win = tk.Toplevel()
-            win.wm_title("Window")
+        def popup_bonus(self):
+            self.win = tk.Toplevel()
+            self.win.wm_title("Window")
         
-            l = tk.Label(win, text="Please Scan Token")
+            l = tk.Label(self.win, text="Please Scan Token")
             l.grid(row=0, column=0)
 
-            b = tk.Button(win, text="Okay", command=NewGamePlayer)
+            b = tk.Button(self.win, text="Okay", command=self.NewGamePlayer)
             b.grid(row=1, column=0)
-        def NewGamePlayer():
-            win = tk.Toplevel()
-            win.wm_title("NameGiver")
-            l = tk.Label(win, text="Enter ID:")
+        def NewGamePlayer(self):
+            self.win.destroy()
+            self.win = tk.Toplevel()
+            self.win.wm_title("NameGiver")
+            l = tk.Label(self.win, text="Enter ID:")
             l.grid(row=0, column=0)
-            e1 = tk.Entry(win,text="Enter Name")
-            e1.grid(row=0, column=1)
-            l = tk.Label(win, text="Enter Name:")
+            self.e1 = tk.Entry(self.win,text="Enter Name")
+            self.e1.grid(row=0, column=1)
+            l = tk.Label(self.win, text="Enter Name:")
             l.grid(row=1, column=0)
-            e2 = tk.Entry(win,text="Enter Surname")
-            e2.grid(row=1, column=1)
-            b = tk.Button(win, text="Okay", command=win.destroy)
+            self.e2 = tk.Entry(self.win,text="Enter Surname")
+            self.e2.grid(row=1, column=1)
+            b = tk.Button(self.win, text="Okay", command=self.Safe2DataBase)
             b.grid(row=2, column=0)
+        def Safe2DataBase(self):
+            print("ID: %s\nLast Name: %s" % (self.e1.get(), self.e2.get()))
+            kickerDB = "kicker_scores.db"
+            db = donglebert.Database(kickerDB)
+            db.add_new_player(self.e1.get(), self.e2.get())
+            self.win.destroy()
 
         
 

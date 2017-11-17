@@ -3,7 +3,7 @@ from tkinter import font  as tkfont # python 3
 #import Tkinter as tk     # python 2
 #import tkFont as tkfont  # python 2
 
-class SampleApp(tk.Tk):
+class KickerApp(tk.Tk):
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
@@ -22,7 +22,7 @@ class SampleApp(tk.Tk):
         container.pack(side="top", fill="both", expand=True)
 
         self.frames = {}
-        for F in (StartPage, PageOne, PageTwo):
+        for F in (GamePage, NewGamePage, PlayerPage, NewPlayerPage, AdminPage):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
 
@@ -36,17 +36,12 @@ class SampleApp(tk.Tk):
 
             self.frames[page_name] = frame
 
-        self.show_frame("StartPage")
+        self.show_frame("GamePage")
 
     def show_frame(self, page_name):
         '''Show a frame for the given page name'''
         frame = self.frames[page_name]
         frame.tkraise()
-
-    def callback1():
-      print("Button 1")
-    def callback2():
-      print(1 + 1)
 
 class ButtonFrame(tk.Frame):
     def __init__(self, parent, controller):
@@ -54,17 +49,17 @@ class ButtonFrame(tk.Frame):
         self.controller = controller
 
         button1 = tk.Button(self, text="Rangliste",
-                           command=lambda: controller.show_frame("Rangliste"))
+                           command=lambda: controller.show_frame("PlayerPage"))
         #button1.grid_rowconfigure(0, weight=1)
         #button1.grid_columnconfigure(0, weight=1)       
         
         button2 = tk.Button(self, text="Spiele",
-                           command=lambda: controller.show_frame("Spiele"))
+                           command=lambda: controller.show_frame("GamePage"))
         #button2.grid_rowconfigure(0, weight=1)
         #button2.grid_columnconfigure(1, weight=1)        
 
         button3 = tk.Button(self, text="Admin",
-                           command=lambda: controller.show_frame("Admin"))
+                           command=lambda: controller.show_frame("AdminPage"))
         #button2.grid_rowconfigure(0, weight=1)
         #button2.grid_columnconfigure(1, weight=1)
         button1.pack(side="left", fill="both", expand=True)
@@ -72,35 +67,80 @@ class ButtonFrame(tk.Frame):
         button3.pack(side="right", fill="both", expand=True)
 
 
-class StartPage(tk.Frame):
+class GamePage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="This is the start page", font=controller.title_font)
+        label = tk.Label(self, text="Letzte Spiele:", font="Helvetica 12")
         label.pack(side="top", fill="x", pady=10)
 
-        button1 = tk.Button(self, text="Go to Page One",
-                            command=lambda: controller.show_frame("PageOne"))
-        button2 = tk.Button(self, text="Go to Page Two",
-                            command=lambda: controller.show_frame("PageTwo"))
+        # Hole Spiele aus db und zeige die letzten x an
+
+        spiel1 = tk.Label(self, text="spiel1", font="Helvetica 12")
+        spiel1.pack(side="top", fill="x", pady=10)
+
+        spiel2 = tk.Label(self, text="spiel2", font="Helvetica 12")
+        spiel2.pack(side="top", fill="x", pady=10)
+
+        spiel3 = tk.Label(self, text="spiel3", font="Helvetica 12")
+        spiel3.pack(side="top", fill="x", pady=10)
+
+        spiel4 = tk.Label(self, text="spiel4", font="Helvetica 12")
+        spiel4.pack(side="top", fill="x", pady=10)
+
+        button1 = tk.Button(self, text="Neues Spiel",
+                            command=lambda: newGame())
         button1.pack(side="left", fill="both", expand=True)
-        button2.pack(side="left", fill="both", expand=True)
+
+        def newGame():
+            controller.show_frame("NewGamePage")
+            # read first token
+
+class NewGamePage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="Neues Spiel:", font="Helvetica 12")
+        label.pack(side="top", fill="x", pady=10)
+
+        # wenn frame in vordergrund kommt, abfrage nach token beginnen
+        print("Scan first token")
+        # player1 = getPlayer(getTokenID)
+        # player2 = getPlayer(getTokenID)
+        # player3 = getPlayer(getTokenID)
+        # player4 = getPlayer(getTokenID)
+
+        button1 = tk.Button(self, text="Neues Spiel",
+                            command=lambda: controller.show_frame("NewGamePage"))
+        button1.pack(side="left", fill="both", expand=True)
+       
 
 
-class PageOne(tk.Frame):
+class PlayerPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="This is page 1", font=controller.title_font)
+        label = tk.Label(self, text="Rangliste:", font="Helvetica 12")
         label.pack(side="top", fill="x", pady=10)
         button = tk.Button(self, text="Go to the start page",
-                           command=lambda: controller.show_frame("StartPage"))
+                           command=lambda: controller.show_frame("GamePage"))
+        button.pack()
+
+class NewPlayerPage(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="Neuer Spieler", font="Helvetica 12")
+        label.pack(side="top", fill="x", pady=10)
+        button = tk.Button(self, text="Go to the start page",
+                           command=lambda: controller.show_frame("GamePage"))
         button.pack()
 
 
-class PageTwo(tk.Frame):
+class AdminPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -108,10 +148,10 @@ class PageTwo(tk.Frame):
         label = tk.Label(self, text="This is page 2", font=controller.title_font)
         label.pack(side="top", fill="x", pady=10)
         button = tk.Button(self, text="Go to the start page",
-                           command=lambda: controller.show_frame("StartPage"))
+                           command=lambda: controller.show_frame("GamePage"))
         button.pack()
 
 
 if __name__ == "__main__":
-    app = SampleApp()
+    app = KickerApp()
     app.mainloop()

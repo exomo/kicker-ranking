@@ -1,7 +1,13 @@
 import tkinter as tk                # python 3
 from tkinter import font  as tkfont # python 3
+
+import time
 #import Tkinter as tk     # python 2
 #import tkFont as tkfont  # python 2
+
+LARGE_FONT= ("Verdana", 12)
+NORM_FONT= ("Verdana", 10)
+SMALL_FONT= ("Verdana", 8)
 
 class KickerApp(tk.Tk):
 
@@ -9,6 +15,8 @@ class KickerApp(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
 
         self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold", slant="italic")
+
+        self.numPlayers = 0
 
         frame = ButtonFrame(parent=self, controller=self)
         frame.config(bg="white")
@@ -42,6 +50,7 @@ class KickerApp(tk.Tk):
         '''Show a frame for the given page name'''
         frame = self.frames[page_name]
         frame.tkraise()
+
 
 class ButtonFrame(tk.Frame):
     def __init__(self, parent, controller):
@@ -94,61 +103,56 @@ class GamePage(tk.Frame):
         button1.pack(side="left", fill="both", expand=True)
 
         def newGame():
-            win = tk.Toplevel()
-            win.wm_title("Window")
-
             # spiel-objekt anlegen
             controller.show_frame("NewGamePage")
-
-            if numPlayers == 0:
-                l = tk.Label(win, text="Bitte Token von Spieler 1 scannen.")
-                l.grid(row=0, column=0)
-
-                b = tk.Button(win, text="Okay", command=win.destroy)
-                b.grid(row=1, column=0)
             
-                # read first token
-                # spiel.spieler1 = getPlayer(getTokenID())
-                # win.destroy
-                # numPlayers++
-            elif numPlayers == 1:
-                l = tk.Label(win, text="Bitte Token von Spieler 2 scannen.")
-                l.grid(row=0, column=0)
+            IDpopup("Bitte Token von Spieler 1 scannen.")
+        
+            # read first token
+            # spiel.spieler1 = getPlayer(getTokenID())
+            # win.destroy
+            # controller.numPlayers++
+        
+            IDpopup("Bitte Token von Spieler 2 scannen.")
+            id2 = getID()
 
-                b = tk.Button(win, text="Okay", command=win.destroy)
-                b.grid(row=1, column=0)
+            # read second token
+            # spiel.spieler2 = getPlayer(getTokenID())
+            # check for duplicates
+            # win.destroy
+            # controller.numPlayers++
+        
+            IDpopup("Bitte Token von Spieler 3 scannen.")
+            id3 = getID()
 
-                # read second token
-                # spiel.spieler2 = getPlayer(getTokenID())
-                # check for duplicates
-                # win.destroy
-                # numPlayers++
-            elif numPlayers == 2:
-                l = tk.Label(win, text="Bitte Token von Spieler 3 scannen.")
-                l.grid(row=0, column=0)
+            # read third token
+            # spiel.spieler3 = getPlayer(getTokenID())
+            # check for duplicates
+            # win.destroy
+            # controller.numPlayers++
+        
+            IDpopup("Bitte Token von Spieler 4 scannen.")
+            id4 = getID()
 
-                b = tk.Button(win, text="Okay", command=win.destroy)
-                b.grid(row=1, column=0)
+            # read fourth token
+            # spiel.spieler4 = getPlayer(getTokenID())
+            # check for duplicates
+            # win.destroy
+            # controller.numPlayers++
 
-                # read third token
-                # spiel.spieler3 = getPlayer(getTokenID())
-                # check for duplicates
-                # win.destroy
-                # numPlayers++
-            elif numPlayers == 3:
-                l = tk.Label(win, text="Bitte Token von Spieler 4 scannen.")
-                l.grid(row=0, column=0)
+        def IDpopup(msg):
+            popup = tk.Tk()
+            popup.wm_title("!")
+            label = tk.Label(popup, text=msg, font=NORM_FONT)
+            label.pack(side="top", fill="x", pady=10)
+            B1 = tk.Button(popup, text="Okay", command = popup.destroy)
+            B1.pack()
+            popup.mainloop()
 
-                b = tk.Button(win, text="Okay", command=win.destroy)
-                b.grid(row=1, column=0)
+        def getID():
+            time.sleep(5)
+            return 12345
 
-                # read fourth token
-                # spiel.spieler4 = getPlayer(getTokenID())
-                # check for duplicates
-                # win.destroy
-                # numPlayers++
-            # else:
-                # do nothing
 
 class NewGamePage(tk.Frame):
     def __init__(self, parent, controller):
@@ -167,7 +171,6 @@ class NewGamePage(tk.Frame):
         button1 = tk.Button(self, text="Neues Spiel",
                             command=lambda: controller.show_frame("NewGamePage"))
         button1.pack(side="left", fill="both", expand=True)
-       
 
 
 class PlayerPage(tk.Frame):
@@ -180,6 +183,7 @@ class PlayerPage(tk.Frame):
         button = tk.Button(self, text="Neuer Spieler",
                            command=lambda: controller.show_frame("GamePage"))
         button.pack()
+
 
 class NewPlayerPage(tk.Frame):
 

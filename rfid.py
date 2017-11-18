@@ -14,7 +14,7 @@ class rfid():
         
     def TryGetToken(self):
         time.sleep(2)
-        uid = "123456"
+        uid = "42424242424242"
         # uid = mifare.select()
         
         return uid 

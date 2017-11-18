@@ -4,7 +4,7 @@ from tkinter import ttk
 from tkinter.messagebox import showinfo
 
 import time
-import donglebert
+import database
 import rfid
 import Game
 #import Tkinter as tk     # python 2
@@ -15,7 +15,7 @@ NORM_FONT= ("Verdana", 10)
 SMALL_FONT= ("Verdana", 8)
 
 kickerDB = "kicker_scores.db"
-db = donglebert.Database(kickerDB)
+db = database.Database(kickerDB)
 
 class KickerApp(tk.Tk):
 
@@ -134,22 +134,28 @@ class GamePage(tk.Frame):
         reader = rfid.rfid()
         tokenID = reader.TryGetToken()
         if(tokenID != None):
-            self.Players.append(db.get_player(tokenID))
-            self.numPlayers += 1
-            if len(self.Players) == 4:
-                # spiel-objekt anlegen
-                self.win.destroy()
-                spiel = Game.Game()
-                spiel.player1 = self.Players[0]
-                spiel.player2 = self.Players[1]
-                spiel.player3 = self.Players[2]
-                spiel.player4 = self.Players[3]
-                NewGamePage.game = spiel
-                self.controller.show_frame("NewGamePage")
+            player = db.get_player(tokenID)
+            if(player != None):
+                self.Players.append(player)
+                self.numPlayers += 1
+                if len(self.Players) == 4:
+                    # spiel-objekt anlegen
+                    self.win.destroy()
+                    spiel = Game.Game()
+                    spiel.player1 = self.Players[0]
+                    spiel.player2 = self.Players[1]
+                    spiel.player3 = self.Players[2]
+                    spiel.player4 = self.Players[3]
+                    NewGamePage.game = spiel
+                    self.controller.show_frame("NewGamePage")
+                else:
+                    self.popupMsg.set("Bitte Token von Spieler %d scannen" % (self.numPlayers))
+                    self.controller.update_idletasks()
+                    self.after(2000, self.SkanToken)
             else:
-                self.popupMsg.set("Bitte Token von Spieler %d scannen" % (self.numPlayers))
+                self.popupMsg.set("Spieler nicht registriert!\nBitte Token von Spieler %d scannen" % (self.numPlayers))
                 self.controller.update_idletasks()
-                self.after(2000, self.SkanToken)                
+                self.after(100, self.SkanToken)
         else:
             self.after(100, self.SkanToken)
 
@@ -192,6 +198,13 @@ class NewGamePage(tk.Frame):
 
         button2 = tk.Button(self, text="Sieg Team 2")
         button2.grid(row=3, column=1)
+    
+    def onShowFrame(self, event):
+        if(NewGamePage.game != None):
+            self.player1Name.set(NewGamePage.game.player1.name)
+            self.player2Name.set(NewGamePage.game.player2.name)
+            self.player3Name.set(NewGamePage.game.player3.name)
+            self.player4Name.set(NewGamePage.game.player4.name)
 
 class PlayerPage(tk.Frame):
  

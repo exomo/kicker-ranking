@@ -30,8 +30,8 @@ class Database():
 
     def get_all_players(self):
         cur = self.database.cursor()
-        cur.execute("SELECT * FROM players")
-        return cur.fetchall().apply(lambda p: self.create_player(p))
+        cur.execute("SELECT * FROM players ORDER BY skill_mu DESC, skill_sigma ASC")
+        return [self.create_player(p) for p in cur.fetchall()]
 
     def show_players(self):
         print("List of all players")
@@ -40,6 +40,11 @@ class Database():
         cur.execute("SELECT * FROM players")
         for player in cur.fetchall():
             print(player)
+        print("="*30+"\n")
+
+    def update_player_skill(self, p):
+        self.database.execute("UPDATE players SET skill_mu=?, skill_sigma=? WHERE token_id=?", (p.gamerScore, p.standardDeviation, p.tokenID))
+        self.database.commit()
 
     def create_player(self, db_result):
         p = player.Player()

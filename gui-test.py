@@ -22,20 +22,29 @@ class KickerApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
+        self.change_window_mode("window") # change to "fullscreen" to start in full screen
+
+        # exit on Esc
+        self.bind('<Escape>', lambda e: self.destroy())
+        # Ctrl + Enter changes between fullscreen and window
+        self.bind('<Command-Return>', lambda e: self.toggle_window_mode())
+
         self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold", slant="italic")
 
         self.numPlayers = 0
 
         frame = ButtonFrame(parent=self, controller=self)
         frame.config(bg="white")
-        frame.pack()
+        frame.pack(side="top", fill="x", in_=self)
         
         # the container is where we'll stack a bunch of frames
         # on top of each other, then the one we want visible
         # will be raised above the others
         container = tk.Frame(self)
         container.config(bg="blue")
-        container.pack(side="top", fill="both", expand=True)
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+        container.pack(side="top", fill="both", expand=True, in_=self)
 
         self.frames = {}
         for F in (GamePage, NewGamePage, PlayerPage, AdminPage):
@@ -46,13 +55,31 @@ class KickerApp(tk.Tk):
             # the one on the top of the stacking order
             # will be the one that is visible.
             frame.grid(row=0, column=0, sticky="nsew")
-            frame.grid_rowconfigure(0, weight=2)
-            frame.grid_columnconfigure(0, weight=2)
-            #frame.pack(side="top", fill="both", expand=True)
 
             self.frames[page_name] = frame
 
         self.show_frame("GamePage")
+
+    def change_window_mode(self, mode):
+        if mode == "fullscreen":
+            # go fullscreen
+            self.resizable(width=False, height=False)
+            self.overrideredirect(True)
+            self.geometry("{0}x{1}+0+0".format(self.winfo_screenwidth(), self.winfo_screenheight()))
+            self.window_mode = mode
+
+        if mode == "window":
+            # run in a window
+            self.geometry('800x600')
+            self.resizable(width=True, height=True)
+            self.overrideredirect(False)
+            self.window_mode = mode
+        
+    def toggle_window_mode(self):
+        if self.window_mode == "fullscreen":
+            self.change_window_mode("window")
+        else:
+            self.change_window_mode("fullscreen")
 
     def show_frame(self, page_name):
         '''Show a frame for the given page name'''

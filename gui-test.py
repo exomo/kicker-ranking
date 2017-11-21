@@ -235,50 +235,61 @@ class NewGamePage(tk.Frame):
 
 class PlayerPage(tk.Frame):
  
-        def __init__(self, parent, controller):
-            tk.Frame.__init__(self, parent)
-            self.controller = controller
-            label = tk.Label(self, text="Rangliste:", font="Helvetica 12")
-            label.pack(side="top", fill="x", pady=10)
-            button = tk.Button(self, text="Neuer Spieler",command=self.popup_bonus)
-            button.pack()
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        self.config(bg="blue")
+        self.bind("<<ShowFrame>>", self.onShowFrame)
 
-        def popup_bonus(self):
-            self.win = tk.Toplevel()
-            self.win.wm_title("Window")
-        
-            l = tk.Label(self.win, text="Please Scan Token")
-            l.grid(row=0, column=0)
+        label = tk.Label(self, text="Rangliste:", font="Helvetica 12")
+        label.pack(side="top", fill="x", pady=10)
+        self.listMsg = tk.StringVar()
+        rankList = tk.Label(self, textvariable=self.listMsg)
+        rankList.pack(side="top", fill="both", expand=True)
+        button = tk.Button(self, text="Neuer Spieler",command=self.popup_bonus)
+        button.pack(side="top", fill="x", expand=True)
 
+    def popup_bonus(self):
+        self.win = tk.Toplevel()
+        self.win.wm_title("Window")
+    
+        l = tk.Label(self.win, text="Please Scan Token")
+        l.grid(row=0, column=0)
+
+        self.after(100, self.SkanToken)
+
+        b = tk.Button(self.win, text="Abbrechen", command=self.win.destroy)
+        b.grid(row=1, column=0)
+
+    def SkanToken(self):
+        tokenLeser = rfid.rfid()
+        self.token = tokenLeser.TryGetToken()
+        if(self.token != None):
+            self.NewGamePlayer()
+        else:
             self.after(100, self.SkanToken)
+    
+    def NewGamePlayer(self):
+        self.win.destroy()
+        self.win = tk.Toplevel()
+        self.win.wm_title("NameGiver")
+        l = tk.Label(self.win, text="Enter Name:")
+        l.grid(row=1, column=0)
+        self.e2 = tk.Entry(self.win,text="Enter Name")
+        self.e2.grid(row=1, column=1)
+        b = tk.Button(self.win, text="Okay", command=self.Safe2DataBase)
+        b.grid(row=2, column=0)
 
-            b = tk.Button(self.win, text="Abbrechen", command=self.win.destroy)
-            b.grid(row=1, column=0)
-
-        def SkanToken(self):
-            tokenLeser = rfid.rfid()
-            self.token = tokenLeser.TryGetToken()
-            if(self.token != None):
-                self.NewGamePlayer()
-            else:
-                self.after(100, self.SkanToken)
+    def Safe2DataBase(self):
+        print("ID: %s\nLast Name: %s" % (self.token, self.e2.get()))
+        db.add_new_player(self.e2.get(), self.token)
+        self.win.destroy()
+        self.onShowFrame(None)
         
-        def NewGamePlayer(self):
-            self.win.destroy()
-            self.win = tk.Toplevel()
-            self.win.wm_title("NameGiver")
-            l = tk.Label(self.win, text="Enter Name:")
-            l.grid(row=1, column=0)
-            self.e2 = tk.Entry(self.win,text="Enter Name")
-            self.e2.grid(row=1, column=1)
-            b = tk.Button(self.win, text="Okay", command=self.Safe2DataBase)
-            b.grid(row=2, column=0)
-
-        def Safe2DataBase(self):
-            print("ID: %s\nLast Name: %s" % (self.token, self.e2.get()))
-            db.add_new_player(self.e2.get(), self.token)
-            self.win.destroy()
-
+    def onShowFrame(self, event):
+        rank = db.get_all_players()
+        self.listMsg.set("\n".join(["{name} - {score}".format(name=p.name, score=p.gamerScore) for p in rank]))
+        self.controller.update_idletasks()
 
 class AdminPage(tk.Frame):
 

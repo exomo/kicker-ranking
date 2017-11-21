@@ -220,11 +220,32 @@ class NewGamePage(tk.Frame):
         labelPlayer4 = tk.Label(self, textvariable = self.player4Name)
         labelPlayer4.grid(row=2, column=1)
 
-        button1 = tk.Button(self, text="Sieg Team 1")
+        button1 = tk.Button(self, text="Sieg Team 1", command=lambda: self.winner(1))
         button1.grid(row=3, column=0)
 
-        button2 = tk.Button(self, text="Sieg Team 2")
+        button2 = tk.Button(self, text="Sieg Team 2", command=lambda: self.winner(2))
         button2.grid(row=3, column=1)
+
+    def winner(self, team):
+        print("Team {0} wins!".format(team))
+        game = self.game
+        # TODO: Use the real TrueSkill algorithm here, this is just a dummy implementation to see some change in the scores
+        if team == 1:
+            game.player1.gamerScore += 1
+            game.player2.gamerScore += 1
+            game.player3.gamerScore -= 1
+            game.player4.gamerScore -= 1
+        if team == 2:
+            game.player1.gamerScore -= 1
+            game.player2.gamerScore -= 1
+            game.player3.gamerScore += 1
+            game.player4.gamerScore += 1
+        
+        db.update_player_skill(game.player1)
+        db.update_player_skill(game.player2)
+        db.update_player_skill(game.player3)
+        db.update_player_skill(game.player4)
+        self.controller.show_frame("GamePage")
     
     def onShowFrame(self, event):
         if(NewGamePage.game != None):

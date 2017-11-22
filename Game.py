@@ -5,6 +5,7 @@ Created on Fri Nov 17 17:53:19 2017
 @author: fschoenhut
 """
 import player
+from datetime import datetime
 
 class Game():
 
@@ -16,6 +17,7 @@ class Game():
         self._player2 = u""
         self._player3 = u""
         self._player4 = u""
+        self._time = 0
     
     # methodes 
     # -------------------------------------------------------------------------------------------------------------------------------------
@@ -54,7 +56,13 @@ class Game():
         self._player4 = player4
     
     def get_player4(self):
-        return self._player4       
+        return self._player4   
+
+    def set_time(self):
+        self._time = datetime.now()
+    
+    def get_time(self):
+        return self._time   
    
     # properties
     # ----------------------------------------------------------------------------------------------------------------------------      
@@ -66,6 +74,8 @@ class Game():
     player2 = property(get_player2, set_player2)
     player3 = property(get_player3, set_player3)
     player4 = property(get_player4, set_player4)
+
+    time = property(get_time, set_time)
     
   
   

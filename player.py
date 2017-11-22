@@ -2,6 +2,7 @@
 
 # -*- coding: utf-8 -*-
 
+import trueskill
 
 class Player():
 
@@ -38,8 +39,6 @@ class Player():
     def get_standardDeviation(self):
         return self._standardDeviation
     
-    
-    
     # -------------------------------------------------------------------------------------------------------------------------------------
     
     # properties
@@ -48,6 +47,7 @@ class Player():
     tokenID = property(get_tokenID, set_tokenID)
     gamerScore = property(get_gamerScore, set_gamerScore)
     standardDeviation = property(get_standardDeviation, set_standardDeviation)
+
     # -------------------------------------------------------------------------------------------------------------------------------------
     
     def show_player(self):
@@ -56,3 +56,10 @@ class Player():
         print("Gamer Score:", self.gamerScore)
         print("Standard Deviation:", self.standardDeviation)
         print()
+
+    def get_Rating(self):
+        return trueskill.Rating(mu=self.gamerScore, sigma=self.standardDeviation)
+
+    def update_Rating(self, Rating):
+        self.gamerScore = Rating.mu
+        self.standardDeviation = Rating.sigma

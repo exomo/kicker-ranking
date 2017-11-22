@@ -13,16 +13,44 @@ from trueskill import Rating
 #import Tkinter as tk     # python 2
 #import tkFont as tkfont  # python 2
 
-LARGE_FONT= ("Verdana", 12)
-NORM_FONT= ("Verdana", 10)
-SMALL_FONT= ("Verdana", 8)
+LARGE_FONT = ("Verdana", 12)
+NORM_FONT = ("Verdana", 10)
+SMALL_FONT = ("Verdana", 8)
 
 kickerDB = "kicker_scores.db"
 db = database.Database(kickerDB)
 
+#: Default initial mean of ratings.
+MU = 30.
+#: Default initial standard deviation of ratings.
+SIGMA = MU / 3
+#: Default distance that guarantees about 76% chance of winning.
+BETA = SIGMA / 2
+#: Default dynamic factor.
+TAU = SIGMA / 100
+#: Default draw probability of the game.
+DRAW_PROBABILITY = .0
+#: A basis to check reliability of the result.
+DELTA = 0.0001
+
 class KickerApp(tk.Tk):
 
     def __init__(self, *args, **kwargs):
+
+        # Parameter über Admin-Interface verstellbar? Ranglisten-Reset bei Parameter-Änderung notwendig?
+        # Spielpaarungen und Ergebnisse mitloggen, damit hinterher Parameter appliziert werden können.
+        # Wird für Anzeige der letzten Spiele eh gebraucht
+        env = trueskill.TrueSkill(mu=MU, sigma=SIGMA, beta=BETA, tau=TAU, draw_probability=DRAW_PROBABILITY) # Es gibt kein Unentschieden
+
+        if 'mpmath' in trueskill.backends.available_backends():
+            # mpmath can be used in the current environment
+            env.backend = 'mpmath'
+        
+        # TrueSkill-Umgebung mit eigenen Parametern als global festlegen, damit Werte bei Erstellung neuer Spieler übernommen werden
+        env.make_as_global()
+
+        print(env)
+
         tk.Tk.__init__(self, *args, **kwargs)
 
         self.change_window_mode("window") # change to "fullscreen" to start in full screen
@@ -232,34 +260,23 @@ class NewGamePage(tk.Frame):
     def winner(self, team):
         print("Team {0} wins!".format(team))
         game = self.game
-        # TODO: Use the real TrueSkill algorithm here, this is just a dummy implementation to see some change in the scores
-        
+            
         self.getGameRatings(game, team)
         
         db.update_player_skill(game.player1)
         db.update_player_skill(game.player2)
         db.update_player_skill(game.player3)
         db.update_player_skill(game.player4)
+
         self.controller.show_frame("GamePage")
 
-    def getGameRatings(self, game, team):
-        # Parameter über Admin-Interface verstellbar? Ranglisten-Reset bei Parameter-Änderung notwendig?
-        # Spielpaarungen und Ergebnisse mitloggen, damit hinterher Parameter appliziert werden können.
-        # Wird für Anzeige der letzten Spiele eh gebraucht
-        env = trueskill.TrueSkill(mu=30.0, sigma=10.0, beta=5.0, tau=0.1, draw_probability=0.0) # Es gibt kein Unentschieden
-
-        if 'mpmath' in trueskill.backends.available_backends():
-            # mpmath can be used in the current environment
-            env.backend = 'mpmath'
-            
-        print(env)
-            
+    def getGameRatings(self, game, team):            
         # Ratings der einzelnen Spieler laden (mu und sigma können auch explizit übergeben werden)
-        # TODO: Das geht mit Sicherheit auch mit so ner tollen Python-Schleife, alternativ könnte man im Player direkt das Rating-Objekt von trueskill verwenden
-        p1 = env.create_rating(mu=game.player1.gamerScore, sigma=game.player1.standardDeviation) # 1P's skill, create_rating verwendet die als default die Werte die im environment festgelegt werden
-        p2 = env.create_rating(mu=game.player2.gamerScore, sigma=game.player2.standardDeviation)
-        p3 = env.create_rating(mu=game.player3.gamerScore, sigma=game.player3.standardDeviation)
-        p4 = env.create_rating(mu=game.player4.gamerScore, sigma=game.player4.standardDeviation)
+        # TODO: Das geht mit Sicherheit auch mit so ner tollen Python-Schleife
+        p1 = game.player1.get_Rating()
+        p2 = game.player2.get_Rating()
+        p3 = game.player3.get_Rating()
+        p4 = game.player4.get_Rating()
 
         print(p1)
         print(p2)
@@ -279,7 +296,7 @@ class NewGamePage(tk.Frame):
         if team == 1:
             (p1, p2), (p3, p4) = env.rate([Team1, Team2], ranks=[0, 1]) # Team1 wins (rank lower)
         elif team == 2:
-            (p1, p2), (p3, p4) = env.rate([Team1, Team2], ranks=[1, 0]) # Team1 wins (rank lower)
+            (p1, p2), (p3, p4) = env.rate([Team1, Team2], ranks=[1, 0]) # Team2 wins (rank lower)
 
         # Neue Wertung ausgeben
         print(p1)
@@ -288,16 +305,11 @@ class NewGamePage(tk.Frame):
         print(p4)
 
         # TODO: Das geht mit Sicherheit auch mit so ner tollen Python-Schleife, alternativ könnte man im Player direkt das Rating-Objekt von trueskill verwenden
-        game.player1.gamerScore = p1.mu
-        game.player1.standardDeviation = p1.sigma
-        game.player2.gamerScore = p1.mu
-        game.player2.standardDeviation = p1.sigma
-        game.player3.gamerScore = p1.mu
-        game.player3.standardDeviation = p1.sigma
-        game.player4.gamerScore = p1.mu
-        game.player4.standardDeviation = p1.sigma
+        game.player1.update_Rating()
+        game.player2.update_Rating()
+        game.player3.update_Rating()
+        game.player4.update_Rating()
 
-        # TODO: Neue Bewertung zurückgeben, oder gleich hier in DB speichern.
     
     def onShowFrame(self, event):
         if(NewGamePage.game != None):

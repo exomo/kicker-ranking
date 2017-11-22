@@ -1,6 +1,7 @@
 
 import sqlite3
 import player
+import trueskill
 
 class Database():
     def __init__(self, filename):
@@ -15,7 +16,7 @@ class Database():
         print("Created database")
 
     def add_new_player(self, name, token_id):
-        self.database.execute("INSERT INTO players VALUES(?, ?, 25, 3)", (name, token_id))
+        self.database.execute("INSERT INTO players VALUES(?, ?, ?, ?)", (name, token_id, trueskill.Rating().mu, trueskill.Rating().sigma))
         self.database.commit()
         print("Added new player: " + name)
 

@@ -4,7 +4,7 @@ Created on Fri Nov 17 17:53:19 2017
 
 @author: fschoenhut
 """
-import player
+from kicker import player
 from datetime import datetime
 
 class Game():

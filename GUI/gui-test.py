@@ -4,9 +4,9 @@ from tkinter import ttk
 from tkinter.messagebox import showinfo
 
 import time
-import database
-import rfid
-import Game
+from database import database
+from hardware import rfid
+from kicker import Game
 
 import trueskill
 from trueskill import Rating

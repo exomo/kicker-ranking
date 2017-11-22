@@ -1,6 +1,6 @@
 
 import sqlite3
-import player
+from kicker import player
 import trueskill
 
 class Database():

@@ -1,4 +1,4 @@
 /.vscode/*
 ~$*
-/kicker_scores.db
+GUI/kicker_scores.db
 **/__pycache__

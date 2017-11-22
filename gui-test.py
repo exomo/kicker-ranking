@@ -124,22 +124,22 @@ class GamePage(tk.Frame):
         label.pack(side="top", fill="x", pady=10)
 
         # Hole Spiele aus db und zeige die letzten x an
+        # for g in db.get_last_games(x):
+            # add row (label) to canvas
 
-        spiel1 = tk.Label(self, text="spiel1", font="Helvetica 12")
-        spiel1.pack(side="top", fill="x", pady=10)
+        scrollbar = tk.Scrollbar(self)
+        scrollbar.pack(side="right", fill="y")
 
-        spiel2 = tk.Label(self, text="spiel2", font="Helvetica 12")
-        spiel2.pack(side="top", fill="x", pady=10)
+        listbox = tk.Listbox(self, yscrollcommand=scrollbar.set)
+        for i in range(1000):
+            listbox.insert(tk.END, "Spiel %d" % i)
+        listbox.pack(side="top", fill="both", expand=True)
 
-        spiel3 = tk.Label(self, text="spiel3", font="Helvetica 12")
-        spiel3.pack(side="top", fill="x", pady=10)
-
-        spiel4 = tk.Label(self, text="spiel4", font="Helvetica 12")
-        spiel4.pack(side="top", fill="x", pady=10)
+        scrollbar.config(command=listbox.yview)
 
         button1 = tk.Button(self, text="Neues Spiel",
                             command=lambda: self.newGame())
-        button1.pack(side="left", fill="both", expand=True)
+        button1.pack(side="left", fill="x", expand=True)
 
     def newGame(self):
         self.Players = []
@@ -316,9 +316,17 @@ class PlayerPage(tk.Frame):
 
         label = tk.Label(self, text="Rangliste:", font="Helvetica 12")
         label.pack(side="top", fill="x", pady=10)
-        self.listMsg = tk.StringVar()
-        rankList = tk.Label(self, textvariable=self.listMsg)
-        rankList.pack(side="top", fill="both", expand=True)
+
+        scrollbar = tk.Scrollbar(self)
+        scrollbar.pack(side="right", fill="y")
+
+        self.rankList = tk.Listbox(self, yscrollcommand=scrollbar.set)
+        for i in range(10):
+            self.rankList.insert(tk.END, "Spiel %d" % i)
+        self.rankList.pack(side="top", fill="both", expand=True)
+
+        scrollbar.config(command=self.rankList.yview)
+
         button = tk.Button(self, text="Neuer Spieler",command=self.popup_bonus)
         button.pack(side="top", fill="x", expand=True)
 
@@ -361,8 +369,9 @@ class PlayerPage(tk.Frame):
         
     def onShowFrame(self, event):
         rank = db.get_all_players()
-        self.listMsg.set("\n".join(["{name} - {score}".format(name=p.name, score=p.gamerScore) for p in rank]))
-        self.controller.update_idletasks()
+        self.rankList.delete(0, tk.END)
+        for p in rank:
+            self.rankList.insert(tk.END, "{name} - {score}".format(name=p.name, score=p.gamerScore))
 
 class AdminPage(tk.Frame):
 

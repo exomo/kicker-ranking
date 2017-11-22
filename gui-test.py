@@ -155,13 +155,22 @@ class GamePage(tk.Frame):
         # for g in db.get_last_games(x):
             # add row (label) to canvas
 
-        scrollbar = tk.Scrollbar(self)
+        lists = tk.Frame(self)
+        lists.pack(side="top", fill="both", expand=True)
+
+        scrollbar = tk.Scrollbar(lists)
         scrollbar.pack(side="right", fill="y")
 
-        listbox = tk.Listbox(self, yscrollcommand=scrollbar.set)
-        for i in range(1000):
+        listbox = tk.Listbox(lists, yscrollcommand=scrollbar.set)
+        for i in range(100):
             listbox.insert(tk.END, "Spiel %d" % i)
-        listbox.pack(side="top", fill="both", expand=True)
+            if i%2==0:
+                listbox.itemconfig(tk.END, bg='gray')              
+            listbox.insert(tk.END, "------------------------------------------------------------")
+            if i%2==0:
+                listbox.itemconfig(tk.END, bg='gray')
+    
+        listbox.pack(side="left", fill="both", expand=True)
 
         scrollbar.config(command=listbox.yview)
 
@@ -329,18 +338,28 @@ class PlayerPage(tk.Frame):
         label = tk.Label(self, text="Rangliste:", font="Helvetica 12")
         label.pack(side="top", fill="x", pady=10)
 
-        scrollbar = tk.Scrollbar(self)
+        lists = tk.Frame(self)
+        lists.pack(side="top", fill="both", expand=True)
+
+        scrollbar = tk.Scrollbar(lists, command=self.OnScrollbar)
         scrollbar.pack(side="right", fill="y")
 
-        self.rankList = tk.Listbox(self, yscrollcommand=scrollbar.set)
+        self.rankList = tk.Listbox(lists, yscrollcommand=scrollbar.set)
         for i in range(10):
-            self.rankList.insert(tk.END, "Spiel %d" % i)
-        self.rankList.pack(side="top", fill="both", expand=True)
+            self.rankList.insert(tk.END, "Spieler %d" % i)
+        self.rankList.pack(side="left", fill="both", expand=True)
 
-        scrollbar.config(command=self.rankList.yview)
+        self.ratingList = tk.Listbox(lists, yscrollcommand=scrollbar.set)
+        for i in range(10):
+            self.ratingList.insert(tk.END, "Rating %d" % i)
+        self.ratingList.pack(side="left", fill="both", expand=True)
 
         button = tk.Button(self, text="Neuer Spieler",command=self.popup_bonus)
-        button.pack(side="top", fill="x", expand=True)
+        button.pack(side="top", fill="x")
+
+    def OnScrollbar(self, *args):
+        self.rankList.yview(*args)
+        self.ratingList.yview(*args)
 
     def popup_bonus(self):
         self.win = tk.Toplevel()
@@ -380,10 +399,19 @@ class PlayerPage(tk.Frame):
         self.onShowFrame(None)
         
     def onShowFrame(self, event):
-        rank = db.get_all_players()
         self.rankList.delete(0, tk.END)
+        self.ratingList.delete(0, tk.END)
+
+        rank = db.get_all_players()
+
+        i=0
         for p in rank:
-            self.rankList.insert(tk.END, "{name} - {score}".format(name=p.name, score=p.gamerScore))
+            i += 1
+            self.rankList.insert(tk.END, "{rank}. {name:20s}".format(rank=i, name=p.name))
+            self.ratingList.insert(tk.END, "{score}".format(score=p.gamerScore))
+            if i%2==0:
+                self.rankList.itemconfig(tk.END, bg='gray')
+                self.ratingList.itemconfig(tk.END, bg='gray')
 
 class AdminPage(tk.Frame):
 

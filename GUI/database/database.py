@@ -6,6 +6,8 @@ import trueskill
 class Database():
     def __init__(self, filename):
         self.database = sqlite3.connect(filename)
+        # if the database does not exist it is created
+        self.create_database()
 
     def __del__(self):
         self.database.close()

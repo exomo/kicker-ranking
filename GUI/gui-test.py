@@ -57,8 +57,8 @@ class KickerApp(tk.Tk):
 
         # exit on Esc
         self.bind('<Escape>', lambda e: self.destroy())
-        # Ctrl + Enter changes between fullscreen and window
-        self.bind('<Command-Return>', lambda e: self.toggle_window_mode())
+        # Alt + Enter changes between fullscreen and window
+        self.bind('<Alt-Return>', lambda e: self.toggle_window_mode())
 
         self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold", slant="italic")
 
@@ -279,7 +279,7 @@ class NewGamePage(tk.Frame):
 
         self.controller.show_frame("GamePage")
 
-    def getGameRatings(self, game, team):            
+    def getGameRatings(self, game, team):
         # Ratings der einzelnen Spieler laden (mu und sigma können auch explizit übergeben werden)
         # TODO: Das geht mit Sicherheit auch mit so ner tollen Python-Schleife
         p1 = game.player1.get_Rating()
@@ -297,15 +297,15 @@ class NewGamePage(tk.Frame):
         Team1 = [p1, p2]
         Team2 = [p3, p4]
 
-        print('{:.1%} chance to draw'.format(env.quality([Team1, Team2])))
-        if env.quality([Team1, Team2]) < 0.50:
+        print('{:.1%} chance to draw'.format(trueskill.quality([Team1, Team2])))
+        if trueskill.quality([Team1, Team2]) < 0.50:
             print('This match seems to be not so fair')
 
         # neue Bewertungen anhand des Ergebnisses berechnen
         if team == 1:
-            (p1, p2), (p3, p4) = env.rate([Team1, Team2], ranks=[0, 1]) # Team1 wins (rank lower)
+            (p1, p2), (p3, p4) = trueskill.rate([Team1, Team2], ranks=[0, 1]) # Team1 wins (rank lower)
         elif team == 2:
-            (p1, p2), (p3, p4) = env.rate([Team1, Team2], ranks=[1, 0]) # Team2 wins (rank lower)
+            (p1, p2), (p3, p4) = trueskill.rate([Team1, Team2], ranks=[1, 0]) # Team2 wins (rank lower)
 
         # Neue Wertung ausgeben
         print(p1)
@@ -314,10 +314,10 @@ class NewGamePage(tk.Frame):
         print(p4)
 
         # TODO: Das geht mit Sicherheit auch mit so ner tollen Python-Schleife, alternativ könnte man im Player direkt das Rating-Objekt von trueskill verwenden
-        game.player1.update_Rating()
-        game.player2.update_Rating()
-        game.player3.update_Rating()
-        game.player4.update_Rating()
+        game.player1.update_Rating(p1)
+        game.player2.update_Rating(p2)
+        game.player3.update_Rating(p3)
+        game.player4.update_Rating(p4)
 
     
     def onShowFrame(self, event):
@@ -363,9 +363,9 @@ class PlayerPage(tk.Frame):
 
     def popup_bonus(self):
         self.win = tk.Toplevel()
-        self.win.wm_title("Window")
+        self.win.wm_title("Neuer Spieler")
     
-        l = tk.Label(self.win, text="Please Scan Token")
+        l = tk.Label(self.win, text="Bitte Token an den Scanner halten")
         l.grid(row=0, column=0)
 
         self.after(100, self.SkanToken)
@@ -384,16 +384,18 @@ class PlayerPage(tk.Frame):
     def NewGamePlayer(self):
         self.win.destroy()
         self.win = tk.Toplevel()
-        self.win.wm_title("NameGiver")
-        l = tk.Label(self.win, text="Enter Name:")
+        self.win.wm_title("Neuer Spieler")
+        l = tk.Label(self.win, text="Name:")
         l.grid(row=1, column=0)
         self.e2 = tk.Entry(self.win,text="Enter Name")
         self.e2.grid(row=1, column=1)
+        self.e2.focus_set()
+        self.e2.bind("<Return>", lambda e : self.Safe2DataBase())
         b = tk.Button(self.win, text="Okay", command=self.Safe2DataBase)
         b.grid(row=2, column=0)
 
     def Safe2DataBase(self):
-        print("ID: %s\nLast Name: %s" % (self.token, self.e2.get()))
+        print("Token ID: %s\nName: %s" % (self.token, self.e2.get()))
         db.add_new_player(self.e2.get(), self.token)
         self.win.destroy()
         self.onShowFrame(None)

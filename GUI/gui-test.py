@@ -35,19 +35,18 @@ DELTA = 0.0001
 
 class KickerApp(tk.Tk):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):        
+
+        if 'mpmath' in trueskill.backends.available_backends():
+            # mpmath can be used in the current environment
+            backend = 'mpmath'
+        else:
+            backend = None
 
         # Parameter über Admin-Interface verstellbar? Ranglisten-Reset bei Parameter-Änderung notwendig?
         # Spielpaarungen und Ergebnisse mitloggen, damit hinterher Parameter appliziert werden können.
         # Wird für Anzeige der letzten Spiele eh gebraucht
-        env = trueskill.TrueSkill(mu=MU, sigma=SIGMA, beta=BETA, tau=TAU, draw_probability=DRAW_PROBABILITY) # Es gibt kein Unentschieden
-
-        if 'mpmath' in trueskill.backends.available_backends():
-            # mpmath can be used in the current environment
-            env.backend = 'mpmath'
-        
-        # TrueSkill-Umgebung mit eigenen Parametern als global festlegen, damit Werte bei Erstellung neuer Spieler übernommen werden
-        env.make_as_global()
+        env = trueskill.setup(mu=MU, sigma=SIGMA, beta=BETA, tau=TAU, draw_probability=DRAW_PROBABILITY, backend=backend) # Es gibt kein Unentschieden
 
         print(env)
 

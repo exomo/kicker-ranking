@@ -292,7 +292,7 @@ class NewGamePage(tk.Frame):
         r2plus = tk.Button(self, text="+", command=lambda: increase(result2))
         r2plus.grid(row=7, column=8)
 
-        auswerten = tk.Button(self, text="Spiel werten")
+        auswerten = tk.Button(self, text="Spiel werten", command=lambda: winner(int(result1.get()), int(result2.get())))
         auswerten.grid(row=8, column=0, columnspan=9)
 
         def increase(Entry):
@@ -305,11 +305,19 @@ class NewGamePage(tk.Frame):
             Entry.delete(0,tk.END)
             Entry.insert(0, str(max(0, cur-1)))
 
-    def winner(self, winner_team):
-        print("Team {0} wins!".format(winner_team))
-        game = self.game.save_to_database(winner_team, db)
+        def winner(self, result1, result2):
+            if (result1 ==2 | result2 == 2) & (result1 >= 0 & result2 >= 0) & (result1 <= 2 & result2 <= 2) & (result1 != result2):
+                if result1 > result2:
+                    winner_team = 1
+                else:
+                    winner_team = 2
+            else:
+                print("Ergebnis unplausibel!")
+                
+            print("Team {0} wins!".format(winner_team))
+            game = self.game.save_to_database(winner_team, db)
 
-        self.controller.show_frame("GamePage")
+            self.controller.show_frame("GamePage")
     
     def onShowFrame(self, event):
         if(NewGamePage.game != None):

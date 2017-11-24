@@ -54,6 +54,7 @@ class KickerApp(tk.Tk):
 
         tk.Tk.__init__(self, *args, **kwargs)
 
+        self.wm_title("ITK Kicker Rangliste")
         self.change_window_mode("window") # change to "fullscreen" to start in full screen
 
         # exit on Esc

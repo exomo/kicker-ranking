@@ -3,6 +3,8 @@ from tkinter import font  as tkfont # python 3
 from tkinter import ttk
 from tkinter.messagebox import showinfo
 
+from PIL import Image, ImageTk
+
 import time
 from database import database
 from hardware import rfid
@@ -237,33 +239,71 @@ class NewGamePage(tk.Frame):
 
         label = tk.Label(self, text="Neues Spiel:", font="Helvetica 12")
         #label.pack(side="top", fill="x", pady=10)
-        label.grid(row=0, column=0)
+        label.grid(row=0, column=0, columnspan=9)
 
         self.player1Name = tk.StringVar()
         self.player1Name.set("Player 1")
         labelPlayer1 = tk.Label(self, textvariable = self.player1Name)
-        labelPlayer1.grid(row=1, column=0)
+        labelPlayer1.grid(row=2, column=0, columnspan=3)
 
         self.player2Name = tk.StringVar()
         self.player2Name.set("Player 2")
         labelPlayer2 = tk.Label(self, textvariable = self.player2Name)
-        labelPlayer2.grid(row=2, column=0)
+        labelPlayer2.grid(row=4, column=0, columnspan=3)
+
+        image = Image.open("Kicker_top.jpg")
+        photo = ImageTk.PhotoImage(image)
+
+        topview = tk.Label(self, image=photo)
+        topview.image = photo # keep a reference!
+        topview.grid(row=1, column=3, rowspan=5, columnspan=3)
 
         self.player3Name = tk.StringVar()
         self.player3Name.set("Player 3")
         labelPlayer3 = tk.Label(self, textvariable = self.player3Name)
-        labelPlayer3.grid(row=1, column=1)
+        labelPlayer3.grid(row=2, column=6, columnspan=3)
 
         self.player4Name = tk.StringVar()
         self.player4Name.set("Player 4")
         labelPlayer4 = tk.Label(self, textvariable = self.player4Name)
-        labelPlayer4.grid(row=2, column=1)
+        labelPlayer4.grid(row=4, column=6, columnspan=3)
 
-        button1 = tk.Button(self, text="Sieg Team 1", command=lambda: self.winner(1))
-        button1.grid(row=3, column=0)
+        r1minus = tk.Button(self, text="-", command=lambda: decrease(result1))
+        r1minus.grid(row=7, column=0)
 
-        button2 = tk.Button(self, text="Sieg Team 2", command=lambda: self.winner(2))
-        button2.grid(row=3, column=1)
+        result1 = tk.Entry(self,text="Result Team 1")
+        result1.grid(row=7, column=1)
+
+        result1.delete(0, tk.END)
+        result1.insert(0, "0")
+
+        r1plus = tk.Button(self, text="+", command=lambda: increase(result1))
+        r1plus.grid(row=7, column=2)
+
+        r2minus = tk.Button(self, text="-", command=lambda: decrease(result2))
+        r2minus.grid(row=7, column=6)
+
+        result2 = tk.Entry(self,text="Result Team 2")
+        result2.grid(row=7, column=7)
+
+        result2.delete(0, tk.END)
+        result2.insert(0, "0")
+
+        r2plus = tk.Button(self, text="+", command=lambda: increase(result2))
+        r2plus.grid(row=7, column=8)
+
+        auswerten = tk.Button(self, text="Spiel werten")
+        auswerten.grid(row=8, column=0, columnspan=9)
+
+        def increase(Entry):
+            cur = int(Entry.get())
+            Entry.delete(0,tk.END)
+            Entry.insert(0, str(min(2, cur+1)))
+
+        def decrease(Entry):
+            cur = int(Entry.get())
+            Entry.delete(0,tk.END)
+            Entry.insert(0, str(max(0, cur-1)))
 
     def winner(self, team):
         print("Team {0} wins!".format(team))

@@ -46,13 +46,13 @@ class Database():
         print("="*30+"\n")
 
     def update_player_skill(self, p):
-        self.database.execute("UPDATE players SET skill_mu=?, skill_sigma=? WHERE token_id=?", (p.gamerScore, p.standardDeviation, p.tokenID))
+        print("Update player:\n {0}".format(p))
+        self.database.execute("UPDATE players SET skill_mu=?, skill_sigma=? WHERE token_id=?", (p.rating.mu, p.rating.sigma, p.tokenID))
         self.database.commit()
 
     def create_player(self, db_result):
         p = player.Player()
         p.name = db_result[0]
         p.tokenID = db_result[1]
-        p.gamerScore = db_result[2]
-        p.standardDeviation = db_result[3]
+        p.rating = trueskill.Rating(mu=db_result[2], sigma=db_result[3])
         return p

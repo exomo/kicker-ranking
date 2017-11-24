@@ -10,8 +10,10 @@ class Player():
         # Variables for every Gamer
         self._name = u""
         self._tokenID = 0
-        self._gamerScore = 0.0
-        self._standardDeviation = 0.0
+        self._rating = trueskill.Rating()
+
+    def __repr__(self):
+        return "Player\n -Name: {0}\n -Token ID: {1}\n -Score: mu {2}, sigma {3}".format(self.name, self.tokenID, self.rating.mu, self.rating.sigma)
         
     # setter-, getter-methodes 
     # -------------------------------------------------------------------------------------------------------------------------------------
@@ -27,17 +29,11 @@ class Player():
     def get_tokenID(self):
         return self._tokenID
     
-    def set_gamerScore(self, score):
-        self._gamerScore = score
+    def set_rating(self, rating):
+        self._rating = rating
         
-    def get_gamerScore(self):
-        return self._gamerScore
-        
-    def set_standardDeviation(self, deviation):
-        self._standardDeviation = deviation
-    
-    def get_standardDeviation(self):
-        return self._standardDeviation
+    def get_rating(self):
+        return self._rating
     
     # -------------------------------------------------------------------------------------------------------------------------------------
     
@@ -45,21 +41,10 @@ class Player():
     # -------------------------------------------------------------------------------------------------------------------------------------
     name = property(get_name, set_name)
     tokenID = property(get_tokenID, set_tokenID)
-    gamerScore = property(get_gamerScore, set_gamerScore)
-    standardDeviation = property(get_standardDeviation, set_standardDeviation)
+    rating = property(get_rating, set_rating)
 
     # -------------------------------------------------------------------------------------------------------------------------------------
     
     def show_player(self):
-        print("name:", self.name)                       # print("name:", get_name())
-        print("Token ID:", self.tokenID)
-        print("Gamer Score:", self.gamerScore)
-        print("Standard Deviation:", self.standardDeviation)
+        print(self)
         print()
-
-    def get_Rating(self):
-        return trueskill.Rating(mu=self.gamerScore, sigma=self.standardDeviation)
-
-    def update_Rating(self, Rating):
-        self.gamerScore = Rating.mu
-        self.standardDeviation = Rating.sigma

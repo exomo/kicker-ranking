@@ -6,6 +6,8 @@ Created on Fri Nov 17 17:53:19 2017
 """
 from kicker import player
 from datetime import datetime
+import trueskill
+from trueskill import Rating
 
 class Game():
 
@@ -77,7 +79,30 @@ class Game():
 
     time = property(get_time, set_time)
     
-  
-  
-  
+    def save_to_database(self, winner_team, db):
+        # Ratings der einzelnen Spieler laden (mu und sigma können auch explizit übergeben werden)
+        ratings = [player.rating for player in [self.player1, self.player2, self.player3, self.player4]]
+
+        print("Initial player ratings:")
+        for rating in ratings:
+            print(rating)
+
+        # Teams zuweisen
+        # TODO: Teams variabel machen
+        team1 = ratings[0:2]
+        team2 = ratings[2:4]
+
+        print('{:.1%} chance to draw'.format(trueskill.quality([team1, team2])))
+        if trueskill.quality([team1, team2]) < 0.50:
+            print('This match seems to be not so fair')
+
+        # neue Bewertungen anhand des Ergebnisses berechnen
+        if winner_team == 1:
+            (self.player1.rating, self.player2.rating), (self.player3.rating, self.player4.rating) = trueskill.rate([team1, team2], ranks=[0, 1]) # Team1 wins (rank lower)
+        elif winner_team == 2:
+            (self.player1.rating, self.player2.rating), (self.player3.rating, self.player4.rating) = trueskill.rate([team1, team2], ranks=[1, 0]) # Team2 wins (rank lower)
+        
+        # save updated skills to database
+        for player in [self.player1, self.player2, self.player3, self.player4]:
+            db.update_player_skill(player)
  

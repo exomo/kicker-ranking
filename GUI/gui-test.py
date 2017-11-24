@@ -305,59 +305,11 @@ class NewGamePage(tk.Frame):
             Entry.delete(0,tk.END)
             Entry.insert(0, str(max(0, cur-1)))
 
-    def winner(self, team):
-        print("Team {0} wins!".format(team))
-        game = self.game
-            
-        self.getGameRatings(game, team)
-        
-        db.update_player_skill(game.player1)
-        db.update_player_skill(game.player2)
-        db.update_player_skill(game.player3)
-        db.update_player_skill(game.player4)
+    def winner(self, winner_team):
+        print("Team {0} wins!".format(winner_team))
+        game = self.game.save_to_database(winner_team, db)
 
         self.controller.show_frame("GamePage")
-
-    def getGameRatings(self, game, team):
-        # Ratings der einzelnen Spieler laden (mu und sigma können auch explizit übergeben werden)
-        # TODO: Das geht mit Sicherheit auch mit so ner tollen Python-Schleife
-        p1 = game.player1.get_Rating()
-        p2 = game.player2.get_Rating()
-        p3 = game.player3.get_Rating()
-        p4 = game.player4.get_Rating()
-
-        print(p1)
-        print(p2)
-        print(p3)
-        print(p4)
-
-        # Teams zuweisen
-        # TODO: Teams variabel machen
-        Team1 = [p1, p2]
-        Team2 = [p3, p4]
-
-        print('{:.1%} chance to draw'.format(trueskill.quality([Team1, Team2])))
-        if trueskill.quality([Team1, Team2]) < 0.50:
-            print('This match seems to be not so fair')
-
-        # neue Bewertungen anhand des Ergebnisses berechnen
-        if team == 1:
-            (p1, p2), (p3, p4) = trueskill.rate([Team1, Team2], ranks=[0, 1]) # Team1 wins (rank lower)
-        elif team == 2:
-            (p1, p2), (p3, p4) = trueskill.rate([Team1, Team2], ranks=[1, 0]) # Team2 wins (rank lower)
-
-        # Neue Wertung ausgeben
-        print(p1)
-        print(p2)
-        print(p3)
-        print(p4)
-
-        # TODO: Das geht mit Sicherheit auch mit so ner tollen Python-Schleife, alternativ könnte man im Player direkt das Rating-Objekt von trueskill verwenden
-        game.player1.update_Rating(p1)
-        game.player2.update_Rating(p2)
-        game.player3.update_Rating(p3)
-        game.player4.update_Rating(p4)
-
     
     def onShowFrame(self, event):
         if(NewGamePage.game != None):
@@ -449,7 +401,7 @@ class PlayerPage(tk.Frame):
         for p in rank:
             i += 1
             self.rankList.insert(tk.END, "{rank}. {name:20s}".format(rank=i, name=p.name))
-            self.ratingList.insert(tk.END, "{score}".format(score=p.gamerScore))
+            self.ratingList.insert(tk.END, "{score}".format(score=p.rating.mu))
             if i%2==0:
                 self.rankList.itemconfig(tk.END, bg='gray')
                 self.ratingList.itemconfig(tk.END, bg='gray')

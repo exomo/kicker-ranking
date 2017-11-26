@@ -60,8 +60,11 @@ class Game():
     def get_player4(self):
         return self._player4   
 
-    def set_time(self):
-        self._time = datetime.now()
+    def set_time(self, time=None):
+        if(time):
+            self._time = time
+        else:
+            self._time = datetime.now()
     
     def get_time(self):
         return self._time   
@@ -80,6 +83,8 @@ class Game():
     time = property(get_time, set_time)
     
     def save_to_database(self, winner_team, db):
+        db.add_game(self)
+
         # Ratings der einzelnen Spieler laden (mu und sigma können auch explizit übergeben werden)
         ratings = [player.rating for player in [self.player1, self.player2, self.player3, self.player4]]
 

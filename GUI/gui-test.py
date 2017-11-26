@@ -91,7 +91,8 @@ class KickerApp(tk.Tk):
 
             self.frames[page_name] = frame
 
-        self.show_frame("GamePage")
+        # Startseite mit etwas verzögerung aufrufen sonst wird <<ShowFrame>> event nicht ausgelöst. 
+        self.after(10, lambda: self.show_frame("GamePage"))
 
     def change_window_mode(self, mode):
         if mode == "fullscreen":
@@ -149,6 +150,7 @@ class GamePage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+        self.bind("<<ShowFrame>>", self.onShowFrame)
         self.controller = controller
         label = tk.Label(self, text="Letzte Spiele:", font="Helvetica 12")
         label.pack(side="top", fill="x", pady=10)
@@ -163,18 +165,11 @@ class GamePage(tk.Frame):
         scrollbar = tk.Scrollbar(lists)
         scrollbar.pack(side="right", fill="y")
 
-        listbox = tk.Listbox(lists, yscrollcommand=scrollbar.set)
-        for i in range(100):
-            listbox.insert(tk.END, "Spiel %d" % i)
-            if i%2==0:
-                listbox.itemconfig(tk.END, bg='gray')              
-            listbox.insert(tk.END, "------------------------------------------------------------")
-            if i%2==0:
-                listbox.itemconfig(tk.END, bg='gray')
+        self.listbox = tk.Listbox(lists, yscrollcommand=scrollbar.set)
     
-        listbox.pack(side="left", fill="both", expand=True)
+        self.listbox.pack(side="left", fill="both", expand=True)
 
-        scrollbar.config(command=listbox.yview)
+        scrollbar.config(command=self.listbox.yview)
 
         button1 = tk.Button(self, text="Neues Spiel",
                             command=lambda: self.newGame())
@@ -227,6 +222,19 @@ class GamePage(tk.Frame):
                 self.after(100, self.SkanToken)
         else:
             self.after(100, self.SkanToken)
+
+    def onShowFrame(self, event):
+        games = db.get_last_games()
+        self.listbox.delete(0, tk.END)
+        for i, game in enumerate(games):
+            self.listbox.insert(tk.END, "Spiel {0}: {1} + {2} {3}:{4} {5} + {6}        {7}"
+                .format(i+1, game.player1.name, game.player2.name, game.scoreTeam1, game.scoreTeam2, game.player3.name, game.player4.name, game.time))
+            if i%2==0:
+                self.listbox.itemconfig(tk.END, bg='lightblue')
+            self.listbox.insert(tk.END, "------------------------------------------------------------")
+            if i%2==0:
+                self.listbox.itemconfig(tk.END, bg='lightblue')
+        pass
 
 
 class NewGamePage(tk.Frame):
@@ -293,7 +301,7 @@ class NewGamePage(tk.Frame):
         r2plus = tk.Button(self, text="+", command=lambda: increase(result2))
         r2plus.grid(row=7, column=8)
 
-        auswerten = tk.Button(self, text="Spiel werten", command=lambda: winner(int(result1.get()), int(result2.get())))
+        auswerten = tk.Button(self, text="Spiel werten", command=lambda: self.winner(int(result1.get()), int(result2.get())))
         auswerten.grid(row=8, column=0, columnspan=9)
 
         def increase(Entry):
@@ -306,20 +314,22 @@ class NewGamePage(tk.Frame):
             Entry.delete(0,tk.END)
             Entry.insert(0, str(max(0, cur-1)))
 
-        def winner(self, result1, result2):
-            if (result1 ==2 | result2 == 2) & (result1 >= 0 & result2 >= 0) & (result1 <= 2 & result2 <= 2) & (result1 != result2):
-                if result1 > result2:
-                    winner_team = 1
-                else:
-                    winner_team = 2
+    def winner(self, result1, result2):
+        if (result1 == 2 or result2 == 2) and (result1 >= 0 and result2 >= 0) and (result1 <= 2 and result2 <= 2) and (result1 != result2):
+            if result1 > result2:
+                winner_team = 1
             else:
-                print("Ergebnis unplausibel!")
-                
-            print("Team {0} wins!".format(winner_team))
-            game = self.game.save_to_database(winner_team, db)
+                winner_team = 2
+        else:
+            print("Ergebnis unplausibel!")
+            return
+        self.game.scoreTeam1 = result1
+        self.game.scoreTeam2 = result2
+        print("Team {0} wins!".format(winner_team))
+        self.game.save_to_database(winner_team, db)
 
-            self.controller.show_frame("GamePage")
-    
+        self.controller.show_frame("GamePage")
+
     def onShowFrame(self, event):
         if(NewGamePage.game != None):
             self.player1Name.set(NewGamePage.game.player1.name)
@@ -387,7 +397,9 @@ class PlayerPage(tk.Frame):
         self.win.wm_title("Neuer Spieler")
         l = tk.Label(self.win, text="Name:")
         l.grid(row=1, column=0)
-        self.e2 = tk.Entry(self.win,text="Enter Name")
+        self.name_var = tk.StringVar(self.win)
+        self.e2 = tk.Entry(self.win,text="Enter Name", textvariable=self.name_var)
+        self.name_var.set("")
         self.e2.grid(row=1, column=1)
         self.e2.focus_set()
         self.e2.bind("<Return>", lambda e : self.Safe2DataBase())
@@ -412,8 +424,8 @@ class PlayerPage(tk.Frame):
             self.rankList.insert(tk.END, "{rank}. {name:20s}".format(rank=i, name=p.name))
             self.ratingList.insert(tk.END, "{score}".format(score=p.rating.mu))
             if i%2==0:
-                self.rankList.itemconfig(tk.END, bg='gray')
-                self.ratingList.itemconfig(tk.END, bg='gray')
+                self.rankList.itemconfig(tk.END, bg='lightblue')
+                self.ratingList.itemconfig(tk.END, bg='lightblue')
 
 class AdminPage(tk.Frame):
 

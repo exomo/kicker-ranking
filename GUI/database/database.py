@@ -1,6 +1,7 @@
 
 import sqlite3
 from kicker import player
+from kicker import Game
 import trueskill
 
 class Database():
@@ -13,7 +14,8 @@ class Database():
         self.database.close()
 
     def create_database(self):
-        self.database.execute("CREATE TABLE IF NOT EXISTS players (name TEXT PRIMARY KEY, token_id TEXT, skill_mu REAL, skill_sigma REAL)")
+        self.database.execute("CREATE TABLE IF NOT EXISTS players (name TEXT UNIQUE, token_id TEXT PRIMARY KEY, skill_mu REAL, skill_sigma REAL)")
+        self.database.execute("CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, player1 TEXT, player2 TEXT, player3 TEXT, player4 TEXT, team1_score INTEGER, team2_score INTEGER)")
         self.database.commit()
         print("Created database")
 
@@ -56,3 +58,50 @@ class Database():
         p.tokenID = db_result[1]
         p.rating = trueskill.Rating(mu=db_result[2], sigma=db_result[3])
         return p
+
+    def add_game(self, game):
+        """Add a game to the games list"""
+        cur = self.database.cursor()
+        insert_statement = "INSERT INTO games (player1, player2, player3, player4, team1_score, team2_score) VALUES (?,?,?,?,?,?)"
+        cur.execute(insert_statement, (
+            game.player1.tokenID, 
+            game.player2.tokenID, 
+            game.player3.tokenID, 
+            game.player4.tokenID, 
+            game.scoreTeam1, 
+            game.scoreTeam2))
+        self.database.commit()
+
+    def get_last_games(self):
+        """Get the last 10 games"""
+        cur = self.database.cursor()
+        cur.execute("SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score FROM games ORDER BY timestamp DESC LIMIT 10")
+        games = []
+        for entry in cur:
+            game = Game.Game()
+            game.time = entry[0]
+            try:
+                game.player1 = self.get_player(entry[1])
+            except:
+                game.player1 = player.Player()
+                game.player1.name = "Unregistered Player"
+            try:
+                game.player2 = self.get_player(entry[2])
+            except:
+                game.player2 = player.Player()
+                game.player2.name = "Unregistered Player"
+            try:
+                game.player3 = self.get_player(entry[3])
+            except:
+                game.player3 = player.Player()
+                game.player3.name = "Unregistered Player"
+            try:
+                game.player4 = self.get_player(entry[4])
+            except:
+                game.player4 = player.Player()
+                game.player4.name = "Unregistered Player"
+            game.scoreTeam1 = entry[5]
+            game.scoreTeam2 = entry[6]
+            games.append(game)
+        
+        return games

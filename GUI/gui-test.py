@@ -207,7 +207,7 @@ class GamePage(tk.Frame):
         if tokenID != None:
             player = db.get_player(tokenID)
             if player != None:
-                if player.tokenID != self.Players[0].tokenID & player.tokenID != self.Players[1].tokenID & player.tokenID != self.Players[2].tokenID & player.tokenID != self.Players[3].tokenID
+                if (player.tokenID != self.Players[0].tokenID and player.tokenID != self.Players[1].tokenID and player.tokenID != self.Players[2].tokenID and player.tokenID != self.Players[3].tokenID):
                     self.Players.append(player)
                     self.numPlayers += 1
                     if len(self.Players) == 4:
@@ -432,6 +432,7 @@ class PlayerPage(tk.Frame):
         self.name_var = tk.StringVar(self.win)
         self.e2 = tk.Entry(self.win, text="Enter Name", textvariable=self.name_var)
         self.name_var.set("")
+        self.controller.update_idletasks()
         self.e2.grid(row=1, column=1)
         self.e2.focus_set()
         self.e2.bind("<Return>", lambda e: self.Safe2DataBase())

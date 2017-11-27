@@ -200,29 +200,34 @@ class GamePage(tk.Frame):
         self.win.destroy()
 
     def SkanToken(self):
-        if(self.cancelNewGame):
+        if self.cancelNewGame:
             return
         reader = rfid.rfid()
         tokenID = reader.TryGetToken()
-        if(tokenID != None):
+        if tokenID != None:
             player = db.get_player(tokenID)
-            if(player != None):
-                self.Players.append(player)
-                self.numPlayers += 1
-                if len(self.Players) == 4:
-                    # spiel-objekt anlegen
-                    self.win.destroy()
-                    spiel = Game.Game()
-                    spiel.player1 = self.Players[0]
-                    spiel.player2 = self.Players[1]
-                    spiel.player3 = self.Players[2]
-                    spiel.player4 = self.Players[3]
-                    NewGamePage.game = spiel
-                    self.controller.show_frame("NewGamePage")
+            if player != None:
+                if player.tokenID != self.Players[0].tokenID & player.tokenID != self.Players[1].tokenID & player.tokenID != self.Players[2].tokenID & player.tokenID != self.Players[3].tokenID
+                    self.Players.append(player)
+                    self.numPlayers += 1
+                    if len(self.Players) == 4:
+                        # spiel-objekt anlegen
+                        self.win.destroy()
+                        spiel = Game.Game()
+                        spiel.player1 = self.Players[0]
+                        spiel.player2 = self.Players[1]
+                        spiel.player3 = self.Players[2]
+                        spiel.player4 = self.Players[3]
+                        NewGamePage.game = spiel
+                        self.controller.show_frame("NewGamePage")
+                    else:
+                        self.popupMsg.set("Bitte Token von Spieler %d scannen" % (self.numPlayers))
+                        self.controller.update_idletasks()
+                        self.after(2000, self.SkanToken)
                 else:
-                    self.popupMsg.set("Bitte Token von Spieler %d scannen" % (self.numPlayers))
+                    self.popupMsg.set("Spieler bereits hinzugefügt.\nBitte Token von Spieler %d scannen" % (self.numPlayers))
                     self.controller.update_idletasks()
-                    self.after(2000, self.SkanToken)
+                    self.after(100, self.SkanToken)
             else:
                 self.popupMsg.set("Spieler nicht registriert!\nBitte Token von Spieler %d scannen" % (self.numPlayers))
                 self.controller.update_idletasks()

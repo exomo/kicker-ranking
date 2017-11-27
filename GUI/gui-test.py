@@ -74,7 +74,7 @@ class KickerApp(tk.Tk):
         # on top of each other, then the one we want visible
         # will be raised above the others
         container = tk.Frame(self)
-        container.config(bg="blue")
+        container.config(bg="lightblue")
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         container.pack(side="top", fill="both", expand=True, in_=self)
@@ -342,7 +342,7 @@ class PlayerPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        self.config(bg="blue")
+        self.config(bg="lightblue")
         self.bind("<<ShowFrame>>", self.onShowFrame)
 
         label = tk.Label(self, text="Rangliste:", font="Helvetica 12")
@@ -364,7 +364,7 @@ class PlayerPage(tk.Frame):
             self.ratingList.insert(tk.END, "Rating %d" % i)
         self.ratingList.pack(side="left", fill="both", expand=True)
 
-        button = tk.Button(self, text="Neuer Spieler",command=self.popup_bonus)
+        button = tk.Button(self, text="Neuer Spieler", command=self.popup_bonus)
         button.pack(side="top", fill="x")
 
     def OnScrollbar(self, *args):
@@ -374,7 +374,7 @@ class PlayerPage(tk.Frame):
     def popup_bonus(self):
         self.win = tk.Toplevel()
         self.win.wm_title("Neuer Spieler")
-    
+
         l = tk.Label(self.win, text="Bitte Token an den Scanner halten")
         l.grid(row=0, column=0)
 
@@ -386,8 +386,14 @@ class PlayerPage(tk.Frame):
     def SkanToken(self):
         tokenLeser = rfid.rfid()
         self.token = tokenLeser.TryGetToken()
-        if(self.token != None):
-            self.NewGamePlayer()
+        if self.token != None:
+            # Check if token is already registered
+            if db.get_player(self.token) == None:
+                self.NewGamePlayer()
+            else:
+                # TODO: Print in GUI
+                print("Player already exists! Please scan another token.")
+                self.after(100, self.SkanToken)
         else:
             self.after(100, self.SkanToken)
     
@@ -398,11 +404,11 @@ class PlayerPage(tk.Frame):
         l = tk.Label(self.win, text="Name:")
         l.grid(row=1, column=0)
         self.name_var = tk.StringVar(self.win)
-        self.e2 = tk.Entry(self.win,text="Enter Name", textvariable=self.name_var)
+        self.e2 = tk.Entry(self.win, text="Enter Name", textvariable=self.name_var)
         self.name_var.set("")
         self.e2.grid(row=1, column=1)
         self.e2.focus_set()
-        self.e2.bind("<Return>", lambda e : self.Safe2DataBase())
+        self.e2.bind("<Return>", lambda e: self.Safe2DataBase())
         b = tk.Button(self.win, text="Okay", command=self.Safe2DataBase)
         b.grid(row=2, column=0)
 
@@ -418,12 +424,12 @@ class PlayerPage(tk.Frame):
 
         rank = db.get_all_players()
 
-        i=0
+        i = 0
         for p in rank:
             i += 1
             self.rankList.insert(tk.END, "{rank}. {name:20s}".format(rank=i, name=p.name))
             self.ratingList.insert(tk.END, "{score}".format(score=p.rating.mu))
-            if i%2==0:
+            if i%2 == 0:
                 self.rankList.itemconfig(tk.END, bg='lightblue')
                 self.ratingList.itemconfig(tk.END, bg='lightblue')
 
@@ -432,9 +438,9 @@ class AdminPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="This is page 2", font=controller.title_font)
+        label = tk.Label(self, text="This is the administration interface", font=controller.title_font)
         label.pack(side="top", fill="x", pady=10)
-        button = tk.Button(self, text="Go to the start page",
+        button = tk.Button(self, text="Go to the game page",
                            command=lambda: controller.show_frame("GamePage"))
         button.pack()
 

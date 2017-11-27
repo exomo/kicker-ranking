@@ -207,7 +207,7 @@ class GamePage(tk.Frame):
         if tokenID != None:
             player = db.get_player(tokenID)
             if player != None:
-                if (player.tokenID != self.Players[0].tokenID and player.tokenID != self.Players[1].tokenID and player.tokenID != self.Players[2].tokenID and player.tokenID != self.Players[3].tokenID):
+                if not player.tokenID in [p.tokenID for p in self.Players]:
                     self.Players.append(player)
                     self.numPlayers += 1
                     if len(self.Players) == 4:

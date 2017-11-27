@@ -185,16 +185,23 @@ class GamePage(tk.Frame):
 
         self.popupMsg = tk.StringVar()
         self.popupMsg.set("Bitte Token von Spieler %d scannen." % (self.numPlayers))
+        self.cancelNewGame = False
 
         self.l = tk.Label(self.win, textvariable = self.popupMsg)
         self.l.grid(row=0, column=0)
 
         self.after(10, self.SkanToken)
 
-        b = tk.Button(self.win, text="Abbrechen", command=self.win.destroy)
+        b = tk.Button(self.win, text="Abbrechen", command=self.cancelScan)
         b.grid(row=1, column=0)
 
+    def cancelScan(self):
+        self.cancelNewGame = True
+        self.win.destroy()
+
     def SkanToken(self):
+        if(self.cancelNewGame):
+            return
         reader = rfid.rfid()
         tokenID = reader.TryGetToken()
         if(tokenID != None):
@@ -379,15 +386,24 @@ class PlayerPage(tk.Frame):
         self.win = tk.Toplevel()
         self.win.wm_title("Neuer Spieler")
 
-        l = tk.Label(self.win, text="Bitte Token an den Scanner halten")
+        self.PopupMsg = tk.StringVar()
+        self.PopupMsg.set("Bitte Token an den Scanner halten")
+        l = tk.Label(self.win, textvariable=self.PopupMsg)
         l.grid(row=0, column=0)
+        self.cancelNewPlayer = False
 
         self.after(100, self.SkanToken)
 
-        b = tk.Button(self.win, text="Abbrechen", command=self.win.destroy)
+        b = tk.Button(self.win, text="Abbrechen", command=self.cancelScan)
         b.grid(row=1, column=0)
 
+    def cancelScan(self):
+        self.cancelNewPlayer = True
+        self.win.destroy()
+
     def SkanToken(self):
+        if self.cancelNewPlayer:
+            return
         tokenLeser = rfid.rfid()
         self.token = tokenLeser.TryGetToken()
         if self.token != None:
@@ -395,7 +411,8 @@ class PlayerPage(tk.Frame):
             if db.get_player(self.token) == None:
                 self.NewGamePlayer()
             else:
-                # TODO: Print in GUI
+                self.PopupMsg.set("Token bereits registriert\n"
+                                  "Bitte Token an den Scanner halten")
                 print("Player already exists! Please scan another token.")
                 self.after(100, self.SkanToken)
         else:

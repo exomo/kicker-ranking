@@ -354,22 +354,26 @@ class PlayerPage(tk.Frame):
         scrollbar = tk.Scrollbar(lists, command=self.OnScrollbar)
         scrollbar.pack(side="right", fill="y")
 
-        self.rankList = tk.Listbox(lists, yscrollcommand=scrollbar.set)
-        for i in range(10):
-            self.rankList.insert(tk.END, "Spieler %d" % i)
-        self.rankList.pack(side="left", fill="both", expand=True)
+        self.rankList = ttk.Treeview(lists, yscrollcommand=scrollbar.set)
+        self.rankList["columns"] = ("player", "mu", "sigma")
+        self.rankList.column("player", width = 100)
+        self.rankList.column("mu", width = 100)
+        self.rankList.column("sigma", width = 100)
+        self.rankList.heading("player", text = "Name")
+        self.rankList.heading("mu", text = "Bewertung")
+        self.rankList.heading("sigma", text = "Standardabweichung")
 
-        self.ratingList = tk.Listbox(lists, yscrollcommand=scrollbar.set)
         for i in range(10):
-            self.ratingList.insert(tk.END, "Rating %d" % i)
-        self.ratingList.pack(side="left", fill="both", expand=True)
+            self.rankList.insert("", tk.END, text = "%d." % i, values = ("Name", "0", "0"))
+
+        self.rankList.pack(side="left", fill="both", expand=True)
 
         button = tk.Button(self, text="Neuer Spieler", command=self.popup_bonus)
         button.pack(side="top", fill="x")
 
     def OnScrollbar(self, *args):
         self.rankList.yview(*args)
-        self.ratingList.yview(*args)
+        #self.ratingList.yview(*args)
 
     def popup_bonus(self):
         self.win = tk.Toplevel()
@@ -419,19 +423,22 @@ class PlayerPage(tk.Frame):
         self.onShowFrame(None)
         
     def onShowFrame(self, event):
-        self.rankList.delete(0, tk.END)
-        self.ratingList.delete(0, tk.END)
+        self.rankList.delete(*self.rankList.get_children())
+        #self.ratingList.delete(0, tk.END)
 
         rank = db.get_all_players()
 
         i = 0
         for p in rank:
             i += 1
-            self.rankList.insert(tk.END, "{rank}. {name:20s}".format(rank=i, name=p.name))
-            self.ratingList.insert(tk.END, "{score}".format(score=p.rating.mu))
+            
+            #self.ratingList.insert(tk.END, "{score}".format(score=p.rating.mu))
             if i%2 == 0:
-                self.rankList.itemconfig(tk.END, bg='lightblue')
-                self.ratingList.itemconfig(tk.END, bg='lightblue')
+                self.rankList.insert("", tk.END, text = "{rank}.".format(rank=i), values = (p.name, p.rating.mu, p.rating.sigma), tags = ("oddrow",))
+            else:
+                self.rankList.insert("", tk.END, text = "{rank}.".format(rank=i), values = (p.name, p.rating.mu, p.rating.sigma), tags = ("evenrow",))
+            
+            self.rankList.tag_configure("oddrow", background = "lightblue")
 
 class AdminPage(tk.Frame):
 

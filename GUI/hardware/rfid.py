@@ -11,8 +11,11 @@ try:
     import nxppy
     mifare = nxppy.Mifare()
     def getToken():
-        uid = mifare.select()
-        return mifare
+        try:
+            uid = mifare.select()
+        except:
+            uid = None
+        return uid
 except:
     global fakeId
     fakeId = 42424242424242

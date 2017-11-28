@@ -22,6 +22,8 @@ SMALL_FONT = ("Verdana", 8)
 kickerDB = "kicker_scores.db"
 db = database.Database(kickerDB)
 
+rfidReader = rfid.rfid()
+
 #: Default initial mean of ratings.
 MU = 30.
 #: Default initial standard deviation of ratings.
@@ -222,8 +224,7 @@ class GamePage(tk.Frame):
     def SkanToken(self):
         if self.cancelNewGame:
             return
-        reader = rfid.rfid()
-        tokenID = reader.TryGetToken()
+        tokenID = rfidReader.TryGetToken()
         if tokenID != None:
             player = db.get_player(tokenID)
             if player != None:
@@ -453,8 +454,7 @@ class PlayerPage(tk.Frame):
     def SkanToken(self):
         if self.cancelNewPlayer:
             return
-        tokenLeser = rfid.rfid()
-        self.token = tokenLeser.TryGetToken()
+        self.token = rfidReader.TryGetToken()
         if self.token != None:
             # Check if token is already registered
             if db.get_player(self.token) is None:

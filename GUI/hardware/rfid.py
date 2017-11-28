@@ -24,12 +24,15 @@ except:
         return uid
 
 class rfid():
+    """
+    Class to handle reading of rfid tokens
+    """
     def __init__(self):
         print("Initialize RFID-Scanner")
-        
+
     def TryGetToken(self):
         uid = getToken()
-        
+
         return self.Hash(uid) if uid else None
 
     def Hash(self, tokenId):

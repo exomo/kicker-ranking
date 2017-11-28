@@ -36,9 +36,13 @@ DRAW_PROBABILITY = .0
 DELTA = 0.0001
 
 class KickerApp(tk.Tk):
-    """ Main class of GUI """
+    """
+    Main class of GUI, specifies basic layout.
+    """
     def __init__(self, *args, **kwargs):
-
+        """
+        Init function of main class.
+        """
         if 'mpmath' in trueskill.backends.available_backends():
             # mpmath can be used in the current environment
             backend = 'mpmath'
@@ -123,7 +127,13 @@ class KickerApp(tk.Tk):
 
 
 class ButtonFrame(tk.Frame):
+    """
+    Class to show navigation buttons
+    """
     def __init__(self, parent, controller):
+        """
+        Init function of ButtonFrame
+        """
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
@@ -147,7 +157,13 @@ class ButtonFrame(tk.Frame):
 
 
 class GamePage(tk.Frame):
+    """
+    Class to show a frame, where completed games are listed and new games can be started
+    """
     def __init__(self, parent, controller):
+        """
+        Init function of GamePage
+        """
         tk.Frame.__init__(self, parent)
         self.bind("<<ShowFrame>>", self.onShowFrame)
         self.controller = controller
@@ -269,10 +285,16 @@ class GamePage(tk.Frame):
 
 
 class NewGamePage(tk.Frame):
+    """
+    Class to handle the creation of new games
+    """
 
     game = None
 
     def __init__(self, parent, controller):
+        """
+        Init function of NewGamePage
+        """
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.bind("<<ShowFrame>>", self.onShowFrame)
@@ -369,7 +391,13 @@ class NewGamePage(tk.Frame):
             self.player4Name.set(NewGamePage.game.player4.name)
 
 class PlayerPage(tk.Frame):
+    """
+    Class to show a frame, where the ranking is displayed and new players can be added
+    """
     def __init__(self, parent, controller):
+        """
+        Init function of PlayerPage
+        """
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.config(bg="lightblue")
@@ -479,8 +507,13 @@ class PlayerPage(tk.Frame):
             self.rankList.tag_configure("oddrow", background="lightblue")
 
 class AdminPage(tk.Frame):
-
+    """
+    Class to show a frame with an administration interface
+    """
     def __init__(self, parent, controller):
+        """
+        Init function of AdminPage
+        """
         tk.Frame.__init__(self, parent)
         self.controller = controller
         label = tk.Label(self, text="This is the administration interface", font=controller.title_font)

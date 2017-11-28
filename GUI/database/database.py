@@ -24,9 +24,9 @@ class Database():
         self.database.commit()
         print("Added new player: " + name)
 
-    def get_player(self, id):
+    def get_player(self, token_id):
         cur = self.database.cursor()
-        cur.execute("SELECT * FROM players WHERE token_id=?", [id])
+        cur.execute("SELECT * FROM players WHERE token_id=?", [token_id])
         result = cur.fetchone()
         if result != None:
             return self.create_player(result)
@@ -64,11 +64,11 @@ class Database():
         cur = self.database.cursor()
         insert_statement = "INSERT INTO games (player1, player2, player3, player4, team1_score, team2_score) VALUES (?,?,?,?,?,?)"
         cur.execute(insert_statement, (
-            game.player1.tokenID, 
-            game.player2.tokenID, 
-            game.player3.tokenID, 
-            game.player4.tokenID, 
-            game.scoreTeam1, 
+            game.player1.tokenID,
+            game.player2.tokenID,
+            game.player3.tokenID,
+            game.player4.tokenID,
+            game.scoreTeam1,
             game.scoreTeam2))
         self.database.commit()
 
@@ -103,5 +103,5 @@ class Database():
             game.scoreTeam1 = entry[5]
             game.scoreTeam2 = entry[6]
             games.append(game)
-        
+
         return games

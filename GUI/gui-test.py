@@ -98,15 +98,15 @@ class KickerApp(tk.Tk):
         if mode == "fullscreen":
             # go fullscreen
             self.resizable(width=False, height=False)
-            self.overrideredirect(True)
             self.geometry("{0}x{1}+0+0".format(self.winfo_screenwidth(), self.winfo_screenheight()))
+            self.attributes("-fullscreen", True)
             self.window_mode = mode
 
         if mode == "window":
             # run in a window
+            self.attributes("-fullscreen", False)
             self.geometry('800x600')
             self.resizable(width=True, height=True)
-            self.overrideredirect(False)
             self.window_mode = mode
 
     def toggle_window_mode(self):

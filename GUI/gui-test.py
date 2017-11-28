@@ -36,8 +36,8 @@ DRAW_PROBABILITY = .0
 DELTA = 0.0001
 
 class KickerApp(tk.Tk):
-
-    def __init__(self, *args, **kwargs):        
+    """ Main class of GUI """
+    def __init__(self, *args, **kwargs):
 
         if 'mpmath' in trueskill.backends.available_backends():
             # mpmath can be used in the current environment
@@ -69,7 +69,7 @@ class KickerApp(tk.Tk):
         frame = ButtonFrame(parent=self, controller=self)
         frame.config(bg="white")
         frame.pack(side="top", fill="x", in_=self)
-        
+
         # the container is where we'll stack a bunch of frames
         # on top of each other, then the one we want visible
         # will be raised above the others
@@ -91,7 +91,7 @@ class KickerApp(tk.Tk):
 
             self.frames[page_name] = frame
 
-        # Startseite mit etwas verzögerung aufrufen sonst wird <<ShowFrame>> event nicht ausgelöst. 
+        # Startseite mit etwas verzögerung aufrufen sonst wird <<ShowFrame>> event nicht ausgelöst.
         self.after(10, lambda: self.show_frame("GamePage"))
 
     def change_window_mode(self, mode):
@@ -108,7 +108,7 @@ class KickerApp(tk.Tk):
             self.resizable(width=True, height=True)
             self.overrideredirect(False)
             self.window_mode = mode
-        
+
     def toggle_window_mode(self):
         if self.window_mode == "fullscreen":
             self.change_window_mode("window")
@@ -128,17 +128,17 @@ class ButtonFrame(tk.Frame):
         self.controller = controller
 
         button1 = tk.Button(self, text="Rangliste",
-                           command=lambda: controller.show_frame("PlayerPage"))
+                            command=lambda: controller.show_frame("PlayerPage"))
         #button1.grid_rowconfigure(0, weight=1)
-        #button1.grid_columnconfigure(0, weight=1)       
-        
+        #button1.grid_columnconfigure(0, weight=1)
+
         button2 = tk.Button(self, text="Spiele",
-                           command=lambda: controller.show_frame("GamePage"))
+                            command=lambda: controller.show_frame("GamePage"))
         #button2.grid_rowconfigure(0, weight=1)
-        #button2.grid_columnconfigure(1, weight=1)        
+        #button2.grid_columnconfigure(1, weight=1)
 
         button3 = tk.Button(self, text="Admin",
-                           command=lambda: controller.show_frame("AdminPage"))
+                            command=lambda: controller.show_frame("AdminPage"))
         #button2.grid_rowconfigure(0, weight=1)
         #button2.grid_columnconfigure(1, weight=1)
         button1.pack(side="left", fill="both", expand=True)
@@ -147,17 +147,15 @@ class ButtonFrame(tk.Frame):
 
 
 class GamePage(tk.Frame):
-
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.bind("<<ShowFrame>>", self.onShowFrame)
         self.controller = controller
+
+        self.cancelNewGame = False
+
         label = tk.Label(self, text="Letzte Spiele:", font="Helvetica 12")
         label.pack(side="top", fill="x", pady=10)
-
-        # Hole Spiele aus db und zeige die letzten x an
-        # for g in db.get_last_games(x):
-            # add row (label) to canvas
 
         lists = tk.Frame(self)
         lists.pack(side="top", fill="both", expand=True)
@@ -165,30 +163,36 @@ class GamePage(tk.Frame):
         scrollbar = tk.Scrollbar(lists)
         scrollbar.pack(side="right", fill="y")
 
-        self.listbox = tk.Listbox(lists, yscrollcommand=scrollbar.set)
-    
-        self.listbox.pack(side="left", fill="both", expand=True)
+        self.gameList = ttk.Treeview(lists, yscrollcommand=scrollbar.set)
+        self.gameList["columns"] = ("team1", "result", "team2", "time")
+        self.gameList.column("team1", width=100)
+        self.gameList.column("result", width=100)
+        self.gameList.column("team2", width=100)
+        self.gameList.column("time", width=100)
+        self.gameList.heading("team1", text="Team 1")
+        self.gameList.heading("result", text="Endstand")
+        self.gameList.heading("team2", text="Team 2")
+        self.gameList.heading("time", text="Zeit")
 
-        scrollbar.config(command=self.listbox.yview)
+        self.gameList.pack(side="left", fill="both", expand=True)
 
-        button1 = tk.Button(self, text="Neues Spiel",
-                            command=lambda: self.newGame())
+        scrollbar.config(command=self.gameList.yview)
+
+        button1 = tk.Button(self, text="Neues Spiel", command=self.newGame)
         button1.pack(side="left", fill="x", expand=True)
 
     def newGame(self):
         self.Players = []
         self.numPlayers = 1
 
-
         self.win = tk.Toplevel()
         self.win.wm_title("Window")
 
         self.popupMsg = tk.StringVar()
         self.popupMsg.set("Bitte Token von Spieler %d scannen." % (self.numPlayers))
-        self.cancelNewGame = False
 
-        self.l = tk.Label(self.win, textvariable = self.popupMsg)
-        self.l.grid(row=0, column=0)
+        l = tk.Label(self.win, textvariable=self.popupMsg)
+        l.grid(row=0, column=0)
 
         self.after(10, self.SkanToken)
 
@@ -236,23 +240,38 @@ class GamePage(tk.Frame):
             self.after(100, self.SkanToken)
 
     def onShowFrame(self, event):
+
+        self.gameList.delete(*self.gameList.get_children())
+
         games = db.get_last_games()
-        self.listbox.delete(0, tk.END)
+
         for i, game in enumerate(games):
-            self.listbox.insert(tk.END, "Spiel {0}: {1} + {2} {3}:{4} {5} + {6}        {7}"
-                .format(i+1, game.player1.name, game.player2.name, game.scoreTeam1, game.scoreTeam2, game.player3.name, game.player4.name, game.time))
-            if i%2==0:
-                self.listbox.itemconfig(tk.END, bg='lightblue')
-            self.listbox.insert(tk.END, "------------------------------------------------------------")
-            if i%2==0:
-                self.listbox.itemconfig(tk.END, bg='lightblue')
-        pass
+            if i%2 == 0:
+                self.gameList.insert("", tk.END,
+                                     text="Spiel {game}".format(game=i+1),
+                                     values=(
+                                         "{p1} und {p2}".format(p1=game.player1.name, p2=game.player2.name),
+                                         "{s1} : {s2}".format(s1=game.scoreTeam1, s2=game.scoreTeam2),
+                                         "{p1} und {p2}".format(p1=game.player3.name, p2=game.player4.name), game.time),
+                                     tags=("oddrow",)
+                                    )
+            else:
+                self.gameList.insert("", tk.END,
+                                     text="Spiel {game}".format(game=i+1),
+                                     values=(
+                                         "{p1} und {p2}".format(p1=game.player1.name, p2=game.player2.name),
+                                         "{s1} : {s2}".format(s1=game.scoreTeam1, s2=game.scoreTeam2),
+                                         "{p1} und {p2}".format(p1=game.player3.name, p2=game.player4.name), game.time),
+                                     tags=("evenrow",)
+                                    )
+
+            self.gameList.tag_configure("oddrow", background="lightblue")
 
 
 class NewGamePage(tk.Frame):
 
     game = None
-    
+
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
@@ -264,12 +283,12 @@ class NewGamePage(tk.Frame):
 
         self.player1Name = tk.StringVar()
         self.player1Name.set("Player 1")
-        labelPlayer1 = tk.Label(self, textvariable = self.player1Name)
+        labelPlayer1 = tk.Label(self, textvariable=self.player1Name)
         labelPlayer1.grid(row=2, column=0, columnspan=3)
 
         self.player2Name = tk.StringVar()
         self.player2Name.set("Player 2")
-        labelPlayer2 = tk.Label(self, textvariable = self.player2Name)
+        labelPlayer2 = tk.Label(self, textvariable=self.player2Name)
         labelPlayer2.grid(row=4, column=0, columnspan=3)
 
         image = Image.open("Kicker_top.jpg")
@@ -281,18 +300,18 @@ class NewGamePage(tk.Frame):
 
         self.player3Name = tk.StringVar()
         self.player3Name.set("Player 3")
-        labelPlayer3 = tk.Label(self, textvariable = self.player3Name)
+        labelPlayer3 = tk.Label(self, textvariable=self.player3Name)
         labelPlayer3.grid(row=2, column=6, columnspan=3)
 
         self.player4Name = tk.StringVar()
         self.player4Name.set("Player 4")
-        labelPlayer4 = tk.Label(self, textvariable = self.player4Name)
+        labelPlayer4 = tk.Label(self, textvariable=self.player4Name)
         labelPlayer4.grid(row=4, column=6, columnspan=3)
 
         r1minus = tk.Button(self, text="-", command=lambda: decrease(result1))
         r1minus.grid(row=7, column=0)
 
-        result1 = tk.Entry(self,text="Result Team 1")
+        result1 = tk.Entry(self, text="Result Team 1")
         result1.grid(row=7, column=1)
 
         result1.delete(0, tk.END)
@@ -304,7 +323,7 @@ class NewGamePage(tk.Frame):
         r2minus = tk.Button(self, text="-", command=lambda: decrease(result2))
         r2minus.grid(row=7, column=6)
 
-        result2 = tk.Entry(self,text="Result Team 2")
+        result2 = tk.Entry(self, text="Result Team 2")
         result2.grid(row=7, column=7)
 
         result2.delete(0, tk.END)
@@ -318,12 +337,12 @@ class NewGamePage(tk.Frame):
 
         def increase(Entry):
             cur = int(Entry.get())
-            Entry.delete(0,tk.END)
+            Entry.delete(0, tk.END)
             Entry.insert(0, str(min(2, cur+1)))
 
         def decrease(Entry):
             cur = int(Entry.get())
-            Entry.delete(0,tk.END)
+            Entry.delete(0, tk.END)
             Entry.insert(0, str(max(0, cur-1)))
 
     def winner(self, result1, result2):
@@ -343,14 +362,13 @@ class NewGamePage(tk.Frame):
         self.controller.show_frame("GamePage")
 
     def onShowFrame(self, event):
-        if(NewGamePage.game != None):
+        if NewGamePage.game != None:
             self.player1Name.set(NewGamePage.game.player1.name)
             self.player2Name.set(NewGamePage.game.player2.name)
             self.player3Name.set(NewGamePage.game.player3.name)
             self.player4Name.set(NewGamePage.game.player4.name)
 
 class PlayerPage(tk.Frame):
- 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
@@ -363,29 +381,27 @@ class PlayerPage(tk.Frame):
         lists = tk.Frame(self)
         lists.pack(side="top", fill="both", expand=True)
 
-        scrollbar = tk.Scrollbar(lists, command=self.OnScrollbar)
+        scrollbar = tk.Scrollbar(lists)
         scrollbar.pack(side="right", fill="y")
 
         self.rankList = ttk.Treeview(lists, yscrollcommand=scrollbar.set)
         self.rankList["columns"] = ("player", "mu", "sigma")
-        self.rankList.column("player", width = 100)
-        self.rankList.column("mu", width = 100)
-        self.rankList.column("sigma", width = 100)
-        self.rankList.heading("player", text = "Name")
-        self.rankList.heading("mu", text = "Bewertung")
-        self.rankList.heading("sigma", text = "Standardabweichung")
+        self.rankList.column("player", width=100)
+        self.rankList.column("mu", width=100)
+        self.rankList.column("sigma", width=100)
+        self.rankList.heading("player", text="Name")
+        self.rankList.heading("mu", text="Bewertung")
+        self.rankList.heading("sigma", text="Standardabweichung")
 
         for i in range(10):
-            self.rankList.insert("", tk.END, text = "%d." % i, values = ("Name", "0", "0"))
+            self.rankList.insert("", tk.END, text="%d." % i, values=("Name", "0", "0"))
 
         self.rankList.pack(side="left", fill="both", expand=True)
 
+        scrollbar.config(command=self.rankList.yview)
+
         button = tk.Button(self, text="Neuer Spieler", command=self.popup_bonus)
         button.pack(side="top", fill="x")
-
-    def OnScrollbar(self, *args):
-        self.rankList.yview(*args)
-        #self.ratingList.yview(*args)
 
     def popup_bonus(self):
         self.win = tk.Toplevel()
@@ -413,7 +429,7 @@ class PlayerPage(tk.Frame):
         self.token = tokenLeser.TryGetToken()
         if self.token != None:
             # Check if token is already registered
-            if db.get_player(self.token) == None:
+            if db.get_player(self.token) is None:
                 self.NewGamePlayer()
             else:
                 self.PopupMsg.set("Token bereits registriert\n"
@@ -422,7 +438,7 @@ class PlayerPage(tk.Frame):
                 self.after(100, self.SkanToken)
         else:
             self.after(100, self.SkanToken)
-    
+
     def NewGamePlayer(self):
         self.win.destroy()
         self.win = tk.Toplevel()
@@ -444,24 +460,23 @@ class PlayerPage(tk.Frame):
         db.add_new_player(self.e2.get(), self.token)
         self.win.destroy()
         self.onShowFrame(None)
-        
+
     def onShowFrame(self, event):
         self.rankList.delete(*self.rankList.get_children())
-        #self.ratingList.delete(0, tk.END)
 
         rank = db.get_all_players()
 
         i = 0
         for p in rank:
             i += 1
-            
+
             #self.ratingList.insert(tk.END, "{score}".format(score=p.rating.mu))
             if i%2 == 0:
-                self.rankList.insert("", tk.END, text = "{rank}.".format(rank=i), values = (p.name, p.rating.mu, p.rating.sigma), tags = ("oddrow",))
+                self.rankList.insert("", tk.END, text="{rank}.".format(rank=i), values=(p.name, p.rating.mu, p.rating.sigma), tags=("oddrow",))
             else:
-                self.rankList.insert("", tk.END, text = "{rank}.".format(rank=i), values = (p.name, p.rating.mu, p.rating.sigma), tags = ("evenrow",))
-            
-            self.rankList.tag_configure("oddrow", background = "lightblue")
+                self.rankList.insert("", tk.END, text="{rank}.".format(rank=i), values=(p.name, p.rating.mu, p.rating.sigma), tags=("evenrow",))
+
+            self.rankList.tag_configure("oddrow", background="lightblue")
 
 class AdminPage(tk.Frame):
 

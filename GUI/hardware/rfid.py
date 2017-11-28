@@ -11,7 +11,7 @@ fakeId = 42424242424242
 
 class rfid():
     def __init__(self):
-        print("init")
+        print("Initialize RFID-Scanner")
         # mifare = nxppy.Mifare()
         
     def TryGetToken(self):

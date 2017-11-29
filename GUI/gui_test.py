@@ -181,16 +181,26 @@ class GamePage(tk.Frame):
         scrollbar = tk.Scrollbar(lists)
         scrollbar.pack(side="right", fill="y")
 
-        self.gameList = ttk.Treeview(lists, yscrollcommand=scrollbar.set)
-        self.gameList["columns"] = ("team1", "result", "team2", "time")
-        self.gameList.column("team1", width=100)
-        self.gameList.column("result", width=100)
-        self.gameList.column("team2", width=100)
-        self.gameList.column("time", width=100)
+        self.gameList = ttk.Treeview(lists,
+                                     columns=("spiel", "team1", "result", "team2", "time"),
+                                     show="headings",
+                                     yscrollcommand=scrollbar.set
+                                    )
+
+        self.gameList.heading("spiel", text="Spiel-ID")
+        self.gameList.column("spiel", minwidth=100, width=100, stretch=False)
+
         self.gameList.heading("team1", text="Team 1")
+        self.gameList.column("team1", minwidth=200, width=200, anchor="e")
+
         self.gameList.heading("result", text="Endstand")
+        self.gameList.column("result", minwidth=100, width=100, anchor="s", stretch=False)
+
         self.gameList.heading("team2", text="Team 2")
+        self.gameList.column("team2", minwidth=200, width=200)
+
         self.gameList.heading("time", text="Zeit")
+        self.gameList.column("time", minwidth=150, width=150)
 
         self.gameList.pack(side="left", fill="both", expand=True)
 
@@ -267,18 +277,22 @@ class GamePage(tk.Frame):
                 self.gameList.insert("", tk.END,
                                      text="Spiel {game}".format(game=i+1),
                                      values=(
+                                         "{game}".format(game=i+1),
                                          "{p1} und {p2}".format(p1=game.player1.name, p2=game.player2.name),
                                          "{s1} : {s2}".format(s1=game.scoreTeam1, s2=game.scoreTeam2),
-                                         "{p1} und {p2}".format(p1=game.player3.name, p2=game.player4.name), game.time),
+                                         "{p1} und {p2}".format(p1=game.player3.name, p2=game.player4.name),
+                                         game.time),
                                      tags=("oddrow",)
                                     )
             else:
                 self.gameList.insert("", tk.END,
                                      text="Spiel {game}".format(game=i+1),
                                      values=(
+                                         "{game}".format(game=i+1),
                                          "{p1} und {p2}".format(p1=game.player1.name, p2=game.player2.name),
                                          "{s1} : {s2}".format(s1=game.scoreTeam1, s2=game.scoreTeam2),
-                                         "{p1} und {p2}".format(p1=game.player3.name, p2=game.player4.name), game.time),
+                                         "{p1} und {p2}".format(p1=game.player3.name, p2=game.player4.name),
+                                         game.time),
                                      tags=("evenrow",)
                                     )
 

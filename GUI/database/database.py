@@ -75,7 +75,7 @@ class Database():
     def get_last_games(self):
         """Get the last 10 games"""
         cur = self.database.cursor()
-        cur.execute("SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score FROM games ORDER BY timestamp DESC LIMIT 10")
+        cur.execute("SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score, id FROM games ORDER BY timestamp DESC LIMIT 100")
         games = []
         for entry in cur:
             game = Game.Game()
@@ -102,6 +102,7 @@ class Database():
                 game.player4.name = "Unregistered Player"
             game.scoreTeam1 = entry[5]
             game.scoreTeam2 = entry[6]
+            game.id = entry[7]
             games.append(game)
 
         return games

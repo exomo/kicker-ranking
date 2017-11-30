@@ -277,7 +277,7 @@ class GamePage(tk.Frame):
                 self.gameList.insert("", tk.END,
                                      text="Spiel {game}".format(game=i+1),
                                      values=(
-                                         "{game}".format(game=i+1),
+                                         "{game}".format(game=game.id),
                                          "{p1} und {p2}".format(p1=game.player1.name, p2=game.player2.name),
                                          "{s1} : {s2}".format(s1=game.scoreTeam1, s2=game.scoreTeam2),
                                          "{p1} und {p2}".format(p1=game.player3.name, p2=game.player4.name),
@@ -288,7 +288,7 @@ class GamePage(tk.Frame):
                 self.gameList.insert("", tk.END,
                                      text="Spiel {game}".format(game=i+1),
                                      values=(
-                                         "{game}".format(game=i+1),
+                                         "{game}".format(game=game.id),
                                          "{p1} und {p2}".format(p1=game.player1.name, p2=game.player2.name),
                                          "{s1} : {s2}".format(s1=game.scoreTeam1, s2=game.scoreTeam2),
                                          "{p1} und {p2}".format(p1=game.player3.name, p2=game.player4.name),
@@ -427,17 +427,23 @@ class PlayerPage(tk.Frame):
         scrollbar = tk.Scrollbar(lists)
         scrollbar.pack(side="right", fill="y")
 
-        self.rankList = ttk.Treeview(lists, yscrollcommand=scrollbar.set)
-        self.rankList["columns"] = ("player", "mu", "sigma")
-        self.rankList.column("player", width=100)
-        self.rankList.column("mu", width=100)
-        self.rankList.column("sigma", width=100)
-        self.rankList.heading("player", text="Name")
-        self.rankList.heading("mu", text="Bewertung")
-        self.rankList.heading("sigma", text="Standardabweichung")
+        self.rankList = ttk.Treeview(lists,
+                                     columns=("rank", "player", "mu", "sigma"),
+                                     show="headings",
+                                     yscrollcommand=scrollbar.set
+                                    )
 
-        for i in range(10):
-            self.rankList.insert("", tk.END, text="%d." % i, values=("Name", "0", "0"))
+        self.rankList.heading("rank", text="#")
+        self.rankList.column("rank", minwidth=50, width=50, anchor="e", stretch=False)
+
+        self.rankList.heading("player", text="Name")
+        self.rankList.column("player", minwidth=200, width=100)
+
+        self.rankList.heading("mu", text="Bewertung")
+        self.rankList.column("mu", minwidth=100, width=100, anchor="s")
+
+        self.rankList.heading("sigma", text="Standardabweichung")
+        self.rankList.column("sigma", minwidth=100, width=100, anchor="s")
 
         self.rankList.pack(side="left", fill="both", expand=True)
 
@@ -508,16 +514,27 @@ class PlayerPage(tk.Frame):
 
         rank = db.get_all_players()
 
-        i = 0
-        for p in rank:
-            i += 1
-
-            #self.ratingList.insert(tk.END, "{score}".format(score=p.rating.mu))
+        for i, player in enumerate(rank):
             if i%2 == 0:
-                self.rankList.insert("", tk.END, text="{rank}.".format(rank=i), values=(p.name, p.rating.mu, p.rating.sigma), tags=("oddrow",))
+                self.rankList.insert("", tk.END,
+                                     text="{rank}.".format(rank=i),
+                                     values=("{rank}.".format(rank=i+1),
+                                             player.name,
+                                             '{:4.2f}'.format(player.rating.mu),
+                                             '{:4.2f}'.format(player.rating.sigma)
+                                            ),
+                                     tags=("oddrow",)
+                                    )
             else:
-                self.rankList.insert("", tk.END, text="{rank}.".format(rank=i), values=(p.name, p.rating.mu, p.rating.sigma), tags=("evenrow",))
-
+                self.rankList.insert("", tk.END,
+                                     text="{rank}.".format(rank=i),
+                                     values=("{rank}.".format(rank=i+1),
+                                             player.name,
+                                             '{:4.2f}'.format(player.rating.mu),
+                                             '{:4.2f}'.format(player.rating.sigma)
+                                            ),
+                                     tags=("evenrow",)
+                                    )
             self.rankList.tag_configure("oddrow", background="lightblue")
 
 class AdminPage(tk.Frame):

@@ -369,7 +369,7 @@ class NewGamePage(tk.Frame):
         r2plus = tk.Button(self, text="+", command=lambda: increase(result2))
         r2plus.grid(row=7, column=8)
 
-        auswerten = tk.Button(self, text="Spiel werten", command=lambda: self.winner(int(result1.get()), int(result2.get())))
+        auswerten = tk.Button(self, text="Spiel werten", command=lambda: self.confirm_result(int(result1.get()), int(result2.get())))
         auswerten.grid(row=8, column=0, columnspan=9)
 
         def increase(Entry):
@@ -382,7 +382,32 @@ class NewGamePage(tk.Frame):
             Entry.delete(0, tk.END)
             Entry.insert(0, str(max(0, cur-1)))
 
+    def confirm_result(self, result1, result2):
+        
+        self.win = tk.Toplevel()
+        self.win.wm_title("Bestätigung")
+
+        question = tk.Label(self.win, text="Soll das Spiel mit folgendem Ergebnis gewertet werden?")
+        question.pack(side="top")
+
+        team1 = tk.Label(self.win, text="%s/%s" % (self.game.player1.name, self.game.player2.name))
+        team1.pack(side="top")
+
+        result = tk.Label(self.win, text="%d:%d" % (result1, result2))
+        result.pack(side="top")
+
+        team2 = tk.Label(self.win, text="%s/%s" % (self.game.player3.name, self.game.player4.name))
+        team2.pack(side="top")
+
+        b = tk.Button(self.win, text="Abbrechen", command=self.win.destroy)
+        b.pack(side="left")
+
+        auswerten = tk.Button(self.win, text="Werten", command=lambda: self.winner(result1, result2))
+        auswerten.pack(side="right")
+
     def winner(self, result1, result2):
+        self.win.destroy()
+
         if (result1 == 2 or result2 == 2) and (result1 >= 0 and result2 >= 0) and (result1 <= 2 and result2 <= 2) and (result1 != result2):
             if result1 > result2:
                 winner_team = 1

@@ -1,0 +1,48 @@
+#:kivy 1.10
+<KickerWidget>:
+    do_default_tab: False
+
+    TabbedPanelItem:
+        text: "Rangliste"
+        PlayerPage:
+            orientation: 'vertical'
+            ScrollView:
+                do_scroll_x: False
+                do_scroll_y: True
+                scroll_type: ['bars']
+                bar_pos_y: 'right'
+                RankingList:
+                    height: self.minimum_height
+                    cols: 1
+
+            Button:
+                text: 'Neuer Spieler'
+                size_hint: 1, 0.1
+    
+    TabbedPanelItem:
+        text: "Spiele"
+        GamePage:
+            orientation: 'vertical'
+            Label:
+                text: "Foo"
+            Button:
+                text: 'Neues Spiel'
+                size_hint: 1, 0.1
+    
+    TabbedPanelItem:
+        text: "Admin"
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 10
+            Label:
+                text: "Admin panel noch nicht implementiert"
+                size_hint: 1, 0.3
+            Button:
+                text: "Zurück zur Spieleliste"
+                size_hint: 1, 0.7
+
+<RankingListItem>:
+    size: 0, 40
+    size_hint: 1, None
+    text: 'A player'
+        

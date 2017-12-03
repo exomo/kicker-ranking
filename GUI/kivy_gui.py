@@ -12,7 +12,7 @@ import kivy
 kivy.require('1.10.0')
 from kivy.app import App
 from kivy.app import Builder
-from kivy.properties import NumericProperty
+from kivy.properties import NumericProperty, ObjectProperty
 from kivy.uix.widget import Widget
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -53,23 +53,29 @@ class KickerWidget(TabbedPanel):
         super(KickerWidget, self).__init__(**kwargs)
 
 class PlayerPage(BoxLayout):
-    pass
+    ranking_list = ObjectProperty()
+    def new_player(self):
+        print("TODO: Show the 'New Player' page")
+        self.ranking_list.refresh()
 
 class RankingList(GridLayout):
 
     def __init__(self, **kwargs):
         super(RankingList, self).__init__(**kwargs)
-        for i in range(30):
-            self.add_widget(RankingListItem(text="Spieler"))
+        rank = db.get_all_players()
+        for player in rank:
+            self.add_widget(RankingListItem(text=player.name))
 
     def refresh(self):
-        pass
+        print("So refreshing")
 
 class RankingListItem(Label):
     pass
         
 class GamePage(BoxLayout):
-    pass
+
+    def new_game(self, text):
+        print(text)
 
 class KickerApp(App):
     """
@@ -80,7 +86,13 @@ class KickerApp(App):
         # with open("GUI/KickerApp.kv", encoding='utf8') as f:
         #     Builder.load_string(f.read())
         self.title = "~ ITK Kicker Rangliste ~"
-        return KickerWidget()
+        self.tab_widget = KickerWidget()
+        return self.tab_widget
+
+    def switch_tab(self, tab):
+        self.tab_widget.switch_to(self.tab_widget.tab_list[tab])
+        for t in self.tab_widget.tab_list:
+            print(t.content)
 
 if __name__ == "__main__":
     KickerApp().run()

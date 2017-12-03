@@ -12,7 +12,7 @@ import kivy
 kivy.require('1.10.0')
 from kivy.app import App
 from kivy.app import Builder
-from kivy.properties import NumericProperty, ObjectProperty
+from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.widget import Widget
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -20,6 +20,8 @@ from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.recycleview import RecycleView
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
 
 from database import database
 from hardware import rfid
@@ -58,19 +60,29 @@ class PlayerPage(BoxLayout):
         print("TODO: Show the 'New Player' page")
         self.ranking_list.refresh()
 
-class RankingList(GridLayout):
-
+class RankingList(RecycleView):
     def __init__(self, **kwargs):
         super(RankingList, self).__init__(**kwargs)
-        rank = db.get_all_players()
-        for player in rank:
-            self.add_widget(RankingListItem(text=player.name))
+        self.refresh()
 
     def refresh(self):
+        rank = db.get_all_players()
+        self.data = [{'text' : player.name, 'rank' : i } for i, player in enumerate(rank)]
         print("So refreshing")
 
-class RankingListItem(Label):
-    pass
+class RankingListItem(RecycleDataViewBehavior, BoxLayout):
+    rank = NumericProperty()
+    name = StringProperty()
+    score = NumericProperty()
+
+    def __init__(self, **kwargs):
+        super(RankingListItem, self).__init__(**kwargs)
+
+    def refresh_view_attrs(self, rv, index, data):
+        ''' Catch and handle the view changes '''
+        self.index = index
+        return super(RankingListItem, self).refresh_view_attrs(
+            rv, index, data)
         
 class GamePage(BoxLayout):
 

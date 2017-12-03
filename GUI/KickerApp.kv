@@ -15,23 +15,26 @@
         text: "Admin"
         AdminPage:
 
-<RankingListItem@Label>:
-    size: 0, 40
-    size_hint: 1, None
-    text: 'A player'
+<RankingListItem>:
+    orientation: 'horizontal'
+    #size: 0, 20
+    #size_hint: 1, None
+    Label:
+        text: root.name
 
 <PlayerPage>:
     orientation: 'vertical'
     ranking_list: ranking_list
-    ScrollView:
-        do_scroll_x: False
-        do_scroll_y: True
-        scroll_type: ['bars']
-        bar_pos_y: 'right'
-        RankingList:
-            id: ranking_list
+    RankingList:
+        id: ranking_list
+        viewclass: 'Label'
+        RecycleBoxLayout:
+            default_size: None, dp(56)
+            default_size_hint: 1, None
+            size_hint_y: None
             height: self.minimum_height
-            cols: 1
+            orientation: 'vertical'
+
     Button:
         text: 'Neuer Spieler'
         size_hint: 1, 0.1

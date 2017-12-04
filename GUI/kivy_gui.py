@@ -12,16 +12,18 @@ import kivy
 kivy.require('1.10.0')
 from kivy.app import App
 from kivy.app import Builder
-from kivy.properties import NumericProperty, ObjectProperty, StringProperty
-from kivy.uix.widget import Widget
-from kivy.uix.gridlayout import GridLayout
+from kivy.clock import Clock
+from kivy.properties import BooleanProperty, NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
-from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
-from kivy.uix.scrollview import ScrollView
+from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
+from kivy.uix.textinput import TextInput
+from kivy.uix.widget import Widget
 
 from database import database
 from hardware import rfid
@@ -30,6 +32,7 @@ from kicker import Game
 # global setup of database and rfid reader
 kickerDB = "kicker_scores.db"
 db = database.Database(kickerDB)
+db.show_players()
 
 rfidReader = rfid.rfid()
 
@@ -56,8 +59,12 @@ class KickerWidget(TabbedPanel):
 
 class PlayerPage(BoxLayout):
     ranking_list = ObjectProperty()
+
     def new_player(self):
-        print("TODO: Show the 'New Player' page")
+        """show popup to create new player"""
+        popup = NewPlayerPopup(ranking_list=self.ranking_list)
+        popup.open()
+        print("Show the 'New Player' popup")
         self.ranking_list.refresh()
 
 class RankingList(RecycleView):
@@ -75,6 +82,44 @@ class RankingList(RecycleView):
                 'sigma' : player.rating.sigma
             }
             for i, player in enumerate(rank)]
+
+class NewPlayerPopup(Popup):
+    enable_ok = BooleanProperty()
+    player_name = ObjectProperty()
+    token_id = StringProperty()
+
+    def __init__(self, ranking_list, **kwargs):
+        super(NewPlayerPopup, self).__init__(**kwargs)
+        self.ranking_list = ranking_list
+        self.timer = Clock.schedule_interval(self.on_interval, 0.5)
+
+    def on_interval(self, time_elapsed):
+        token = rfidReader.TryGetToken()
+        if token:
+            #TODO: check if token is already registered, show validation error
+            self.token_id = token
+            self.timer.cancel()
+
+    def on_ok(self):
+        db.add_new_player(self.player_name.text, self.token_id)
+        self.ranking_list.refresh()
+        self.dismiss()
+
+    def validate_input(self):
+        #TODO: Check that name is unique, show validation error
+        self.enable_ok = self.player_name.text and self.token_id
+
+    def focus_name_input(self, t):
+        self.player_name.focus = True
+        print(t)
+
+    # def on_focus(self, sender, value):
+    #     """Workaround for text_validate_unfocus property. When losing focus set focus back"""
+    #     if not value:
+    #         sender.focus = True
+
+    def on_dismiss(self):
+        self.timer.cancel()
 
 class GamePage(BoxLayout):
 

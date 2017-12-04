@@ -100,7 +100,44 @@
     Button:
         text: 'Neuer Spieler'
         size_hint: 1, 0.1
-        on_press: root.new_player()
+        on_release: root.new_player()
+
+<NewPlayerPopup>:
+    title: 'Neuer Spieler'
+    auto_dismiss: False
+    enable_ok: True
+    size_hint: None, None
+    player_name: player_name
+    token_id: 'Hallo'
+    size: 400, 400
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: 'Bitte Token einlesen'
+        Label:
+            text: 'Name:'
+            size_hint: 1, .1
+        TextInput:
+            id: player_name
+            multiline: False
+            size_hint: 1, .15
+            focus: True
+            text_validate_unfocus: False
+            hint_text: 'Spielername eingeben'
+            on_text: root.validate_input()
+            on_text_validate: if root.enable_ok: root.on_ok()
+            # on_focus: root.on_focus(*args)
+        BoxLayout:
+            size_hint_y: 0.1
+            orientation: 'horizontal'
+            Button:
+                text: 'Abbrechen'
+                on_release: root.dismiss()
+            Button:
+                text: 'OK'
+                disabled: not root.enable_ok
+                on_release: root.on_ok()
+    
 
 <GamePage>:
     orientation: 'vertical'
@@ -109,7 +146,7 @@
     Button:
         text: 'Neues Spiel'
         size_hint: 1, 0.1
-        on_press: root.new_game("Hallo")
+        on_release: root.new_game("Hallo")
         
 <AdminPage@BoxLayout>:
     BoxLayout:
@@ -119,4 +156,4 @@
         Button:
             text: "Zurück zur Spieleliste"
             size_hint: 1, 0.1
-            on_press: app.switch_tab(1)
+            on_release: app.switch_tab(1)

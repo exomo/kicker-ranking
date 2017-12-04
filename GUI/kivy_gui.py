@@ -67,23 +67,15 @@ class RankingList(RecycleView):
 
     def refresh(self):
         rank = db.get_all_players()
-        self.data = [{'text' : player.name, 'rank' : i } for i, player in enumerate(rank)]
-        print("So refreshing")
+        self.data = [
+            {
+                'name' : player.name,
+                'rank' : i+1,
+                'score' : player.rating.mu,
+                'sigma' : player.rating.sigma
+            }
+            for i, player in enumerate(rank)]
 
-class RankingListItem(RecycleDataViewBehavior, BoxLayout):
-    rank = NumericProperty()
-    name = StringProperty()
-    score = NumericProperty()
-
-    def __init__(self, **kwargs):
-        super(RankingListItem, self).__init__(**kwargs)
-
-    def refresh_view_attrs(self, rv, index, data):
-        ''' Catch and handle the view changes '''
-        self.index = index
-        return super(RankingListItem, self).refresh_view_attrs(
-            rv, index, data)
-        
 class GamePage(BoxLayout):
 
     def new_game(self, text):

@@ -15,26 +15,88 @@
         text: "Admin"
         AdminPage:
 
-<RankingListItem>:
+<RankingListHeader@BoxLayout>:
     orientation: 'horizontal'
-    #size: 0, 20
-    #size_hint: 1, None
+    Label:
+        text: '[b]#[/b]'
+        markup: True
+        size_hint_x: None
+        size_x: dp(.2)
+        text_size: self.size
+        halign: 'right'
+        valign: 'middle'
+        padding_x: dp(15)
+    Label:
+        text: '[b]Spieler[/b]'
+        markup: True
+        text_size: self.size
+        halign: 'left'
+        valign: 'middle'
+    Label:
+        text: '[b]Bewertung[/b]'
+        markup: True
+        size_hint_x: None
+        size_x: dp(.2)
+    Label:
+        text: '[b]\u03C2[/b]'
+        markup: True
+        size_hint_x: None
+        size_x: dp(.2)
+
+<RankingListItem@BoxLayout>:
+    orientation: 'horizontal'
+    rank: 0
+    score: .0
+    sigma: .0
+    name: ''
+    canvas.before:
+        Color:
+            # alternating colors
+            r: .5 if (self.rank % 2) else 0.3
+            g: .5 if (self.rank % 2) else 0.3
+            b: .5 if (self.rank % 2) else 0.3
+            a: 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    Label:
+        text: '{rank}.'.format(rank=root.rank)
+        size_hint_x: None
+        size_x: dp(.2)
+        text_size: self.size
+        halign: 'right'
+        valign: 'middle'
+        padding_x: dp(15)
     Label:
         text: root.name
+        text_size: self.size
+        halign: 'left'
+        valign: 'middle'
+    Label:
+        text: '{score:.2f}'.format(score=root.score)
+        size_hint_x: None
+        size_x: dp(.2)
+    Label:
+        text: '{sigma:.2f}'.format(sigma=root.sigma)
+        size_hint_x: None
+        size_x: dp(.2)
 
 <PlayerPage>:
     orientation: 'vertical'
     ranking_list: ranking_list
+    RankingListHeader:
+        size_hint: 1, 0.1
+        size_y: dp(10)
     RankingList:
         id: ranking_list
-        viewclass: 'Label'
+        viewclass: 'RankingListItem'
         RecycleBoxLayout:
-            default_size: None, dp(56)
+            default_size: None, dp(35)
             default_size_hint: 1, None
             size_hint_y: None
             height: self.minimum_height
             orientation: 'vertical'
-
+            spacing: dp(2)
     Button:
         text: 'Neuer Spieler'
         size_hint: 1, 0.1

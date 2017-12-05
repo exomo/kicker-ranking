@@ -345,31 +345,25 @@ class NewGamePage(tk.Frame):
         labelPlayer4 = tk.Label(self, textvariable=self.player4Name)
         labelPlayer4.grid(row=4, column=6, columnspan=3)
 
-        r1minus = tk.Button(self, text="-", command=lambda: decrease(result1))
+        r1minus = tk.Button(self, text="-", command=lambda: decrease(self.result1))
         r1minus.grid(row=7, column=0)
 
-        result1 = tk.Entry(self, text="Result Team 1")
-        result1.grid(row=7, column=1)
+        self.result1 = tk.Entry(self, text="Result Team 1")
+        self.result1.grid(row=7, column=1)
 
-        result1.delete(0, tk.END)
-        result1.insert(0, "0")
-
-        r1plus = tk.Button(self, text="+", command=lambda: increase(result1))
+        r1plus = tk.Button(self, text="+", command=lambda: increase(self.result1))
         r1plus.grid(row=7, column=2)
 
-        r2minus = tk.Button(self, text="-", command=lambda: decrease(result2))
+        r2minus = tk.Button(self, text="-", command=lambda: decrease(self.result2))
         r2minus.grid(row=7, column=6)
 
-        result2 = tk.Entry(self, text="Result Team 2")
-        result2.grid(row=7, column=7)
+        self.result2 = tk.Entry(self, text="Result Team 2")
+        self.result2.grid(row=7, column=7)
 
-        result2.delete(0, tk.END)
-        result2.insert(0, "0")
-
-        r2plus = tk.Button(self, text="+", command=lambda: increase(result2))
+        r2plus = tk.Button(self, text="+", command=lambda: increase(self.result2))
         r2plus.grid(row=7, column=8)
 
-        auswerten = tk.Button(self, text="Spiel werten", command=lambda: self.confirm_result(int(result1.get()), int(result2.get())))
+        auswerten = tk.Button(self, text="Spiel werten", command=lambda: self.confirm_result(int(self.result1.get()), int(self.result2.get())))
         auswerten.grid(row=8, column=0, columnspan=9)
 
         def increase(Entry):
@@ -429,6 +423,14 @@ class NewGamePage(tk.Frame):
             self.player2Name.set(NewGamePage.game.player2.name)
             self.player3Name.set(NewGamePage.game.player3.name)
             self.player4Name.set(NewGamePage.game.player4.name)
+
+        self.result1.delete(0, tk.END)
+        self.result1.insert(0, "0")
+
+        self.result2.delete(0, tk.END)
+        self.result2.insert(0, "0")
+
+        self.controller.update_idletasks()
 
 class PlayerPage(tk.Frame):
     """
@@ -518,9 +520,8 @@ class PlayerPage(tk.Frame):
         self.win.wm_title("Neuer Spieler")
         l = tk.Label(self.win, text="Name:")
         l.grid(row=1, column=0)
-        self.name_var = tk.StringVar(self.win)
-        self.e2 = tk.Entry(self.win, text="Enter Name", textvariable=self.name_var)
-        self.name_var.set("")
+        self.e2 = tk.Entry(self.win, text="Enter Name")
+        self.e2.delete(0, tk.END)
         self.controller.update_idletasks()
         self.e2.grid(row=1, column=1)
         self.e2.focus_set()

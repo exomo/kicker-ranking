@@ -270,7 +270,7 @@ class GamePage(tk.Frame):
 
         self.gameList.delete(*self.gameList.get_children())
 
-        games = db.get_last_games()
+        games = db.get_games(100)
 
         for i, game in enumerate(games):
             if i%2 == 0:
@@ -575,9 +575,55 @@ class AdminPage(tk.Frame):
         self.controller = controller
         label = tk.Label(self, text="This is the administration interface", font=controller.title_font)
         label.pack(side="top", fill="x", pady=10)
-        button = tk.Button(self, text="Go to the game page",
-                           command=lambda: controller.show_frame("GamePage"))
-        button.pack()
+        id_entry = tk.Entry(self, text="Game-ID")
+        id_entry.pack(side="left", fill="x")
+
+        load_button = tk.Button(self, text="Load Game",
+                           command=lambda: show_game(id_entry))
+        load_button.pack(side="left", fill="x")
+
+        team1 = tk.Label(self, text="Team 1:")
+        team1.pack(side="left", fill="x", pady=10)
+
+        result1 = tk.Entry(self, text="Result Team 1")
+        result1.pack(side="left", fill="x")
+
+        team2 = tk.Label(self, text="Team 2:")
+        team2.pack(side="left", fill="x", pady=10)
+
+        result2 = tk.Entry(self, text="Result Team 2")
+        result2.pack(side="left", fill="x")
+
+        change_button = tk.Button(self, text="Change Game",
+                           command=lambda: update_game(int(result1.get()), int(result2.get())))
+        change_button.pack(side="left", fill="x")
+
+        def show_game(Entry):
+            game_id = Entry.get()
+            if game_id is not '':
+                self.game = db.get_game(game_id)
+                team1['text'] = "Team 1: {p1}/{p2}".format(p1=self.game.player1.name, p2=self.game.player2.name)
+                team2['text'] = "Team 2: {p1}/{p2}".format(p1=self.game.player3.name, p2=self.game.player4.name)
+                result1.delete(0, tk.END)
+                result1.insert(0, str(self.game.scoreTeam1))
+                result2.delete(0, tk.END)
+                result2.insert(0, str(self.game.scoreTeam2))
+
+        def update_game(result1, result2):
+            if (result1 == 2 or result2 == 2) and (result1 >= 0 and result2 >= 0) and (result1 <= 2 and result2 <= 2) and (result1 != result2):
+                if result1 > result2:
+                    winner_team = 1
+                else:
+                    winner_team = 2
+            else:
+                print("Ergebnis unplausibel!")
+                return
+            self.game.scoreTeam1 = result1
+            self.game.scoreTeam2 = result2
+            db.update_game(self.game)
+            db.rerank_games()
+            
+
 
 
 if __name__ == "__main__":

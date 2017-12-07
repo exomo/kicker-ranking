@@ -48,3 +48,6 @@ class Player():
     def show_player(self):
         print(self)
         print()
+
+    def reset_rating(self):
+        self._rating = trueskill.Rating()

@@ -87,18 +87,28 @@ class NewPlayerPopup(Popup):
     enable_ok = BooleanProperty()
     player_name = ObjectProperty()
     token_id = StringProperty()
+    hint_new_player = StringProperty()
+    display_image = StringProperty('empty.png')
 
     def __init__(self, ranking_list, **kwargs):
         super(NewPlayerPopup, self).__init__(**kwargs)
         self.ranking_list = ranking_list
         self.timer = Clock.schedule_interval(self.on_interval, 0.5)
+        self.hint_new_player = 'Bitte Token einlesen'
 
     def on_interval(self, time_elapsed):
         token = rfidReader.TryGetToken()
         if token:
-            #TODO: check if token is already registered, show validation error
-            self.token_id = token
-            self.timer.cancel()
+            # Check if token is already registered
+            if db.get_player(token) is None:
+                self.display_image = 'check.png'
+                self.hint_new_player = 'Token erfolgreich gelesen.\nBitte Namen eingeben\nund bestätigen.'
+                self.token_id = token
+                self.timer.cancel()
+            else:
+                self.display_image = 'error.png'
+                self.hint_new_player = 'Spieler existiert bereits.\nBitte anderes Token scannen\noder abbrechen.'
+                print("Player already exists! Please scan another token.")     
 
     def on_ok(self):
         db.add_new_player(self.player_name.text, self.token_id)

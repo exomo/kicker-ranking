@@ -109,11 +109,13 @@
     size_hint: None, None
     player_name: player_name
     token_id: 'Hallo'
-    size: 400, 400
+    size: 400, 600
     BoxLayout:
         orientation: 'vertical'
+        Image:
+            source: root.display_image
         Label:
-            text: 'Bitte Token einlesen'
+            text: root.hint_new_player
         Label:
             text: 'Name:'
             size_hint: 1, .1

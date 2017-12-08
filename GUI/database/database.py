@@ -33,6 +33,15 @@ class Database():
         else:
             return None
 
+    def get_admin(self, token_id):
+        cur = self.database.cursor()
+        cur.execute("SELECT * FROM admins WHERE token_id=?", [token_id])
+        result = cur.fetchone()
+        if result != None:
+            return True
+        else:
+            return False
+
     def get_all_players(self):
         cur = self.database.cursor()
         cur.execute("SELECT * FROM players ORDER BY skill_mu DESC, skill_sigma ASC")
@@ -119,37 +128,37 @@ class Database():
         return games
 
     def get_game(self, id):
-        """Get the last number games"""
+        """Get game with id"""
         cur = self.database.cursor()
         cur.execute("SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score FROM games WHERE id=?", [id])
-        
-        for entry in cur:
-            game = Game.Game()
-            game.time = entry[0]
-            try:
-                game.player1 = self.get_player(entry[1])
-            except:
-                game.player1 = player.Player()
-                game.player1.name = "Unregistered Player"
-            try:
-                game.player2 = self.get_player(entry[2])
-            except:
-                game.player2 = player.Player()
-                game.player2.name = "Unregistered Player"
-            try:
-                game.player3 = self.get_player(entry[3])
-            except:
-                game.player3 = player.Player()
-                game.player3.name = "Unregistered Player"
-            try:
-                game.player4 = self.get_player(entry[4])
-            except:
-                game.player4 = player.Player()
-                game.player4.name = "Unregistered Player"
-            game.scoreTeam1 = entry[5]
-            game.scoreTeam2 = entry[6]
-            game.id = int(id)
-            
+        result = cur.fetchone()
+
+        game = Game.Game()
+        game.time = result[0]
+        try:
+            game.player1 = self.get_player(result[1])
+        except:
+            game.player1 = player.Player()
+            game.player1.name = "Unregistered Player"
+        try:
+            game.player2 = self.get_player(result[2])
+        except:
+            game.player2 = player.Player()
+            game.player2.name = "Unregistered Player"
+        try:
+            game.player3 = self.get_player(result[3])
+        except:
+            game.player3 = player.Player()
+            game.player3.name = "Unregistered Player"
+        try:
+            game.player4 = self.get_player(result[4])
+        except:
+            game.player4 = player.Player()
+            game.player4.name = "Unregistered Player"
+        game.scoreTeam1 = result[5]
+        game.scoreTeam2 = result[6]
+        game.id = int(id)
+
         return game
 
     def rerank_games(self):

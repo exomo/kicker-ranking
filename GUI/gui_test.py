@@ -20,7 +20,10 @@ NORM_FONT = ("Verdana", 10)
 SMALL_FONT = ("Verdana", 8)
 
 kickerDB = "kicker_scores.db"
+adminDB = "kicker_admin.db"
+
 db = database.Database(kickerDB)
+adb = database.Database(adminDB)
 
 rfidReader = rfid.rfid()
 
@@ -594,8 +597,8 @@ class AdminPage(tk.Frame):
         result2 = tk.Entry(self, text="Result Team 2")
         result2.pack(side="left", fill="x")
 
-        change_button = tk.Button(self, text="Change Game",
-                           command=lambda: update_game(int(result1.get()), int(result2.get())))
+        change_button = tk.Button(self, text="Change Result",
+                           command=lambda: self.authenticate(int(result1.get()), int(result2.get())))
         change_button.pack(side="left", fill="x")
 
         def show_game(Entry):
@@ -609,22 +612,57 @@ class AdminPage(tk.Frame):
                 result2.delete(0, tk.END)
                 result2.insert(0, str(self.game.scoreTeam2))
 
-        def update_game(result1, result2):
-            if (result1 == 2 or result2 == 2) and (result1 >= 0 and result2 >= 0) and (result1 <= 2 and result2 <= 2) and (result1 != result2):
-                if result1 > result2:
-                    winner_team = 1
-                else:
-                    winner_team = 2
+    def authenticate(self, result1, result2):
+        self.win = tk.Toplevel()
+        self.win.wm_title("Authentifizierung")
+
+        self.PopupMsg = tk.StringVar()
+        self.PopupMsg.set("Bitte Admin-Token scannen.")
+        l = tk.Label(self.win, textvariable=self.PopupMsg)
+        l.grid(row=0, column=0)
+        self.cancelAuthentication = False
+
+        def cancelScan():
+            self.cancelAuthentication = True
+            self.win.destroy()
+
+        b = tk.Button(self.win, text="Abbrechen", command=cancelScan)
+        b.grid(row=1, column=0)
+
+        self.win.update()
+
+        self.after(100, self.SkanToken(result1, result2))
+
+    def SkanToken(self, result1, result2):
+        if self.cancelAuthentication:
+            return
+        token = rfidReader.TryGetToken()
+        if token != None:
+            # Check if token belongs to admin
+            if adb.get_admin(token):
+                self._update_game(result1, result2)
             else:
-                print("Ergebnis unplausibel!")
-                return
-            self.game.scoreTeam1 = result1
-            self.game.scoreTeam2 = result2
-            db.update_game(self.game)
-            db.rerank_games()
+                self.PopupMsg.set("Kein Admin-Token\n"
+                                  "Bitte Admin-Token scannen.")
+                self.after(100, self.SkanToken(result1, result2))
+        else:
+            self.after(100, self.SkanToken(result1, result2))
+
+    def _update_game(self, result1, result2):
+        self.win.destroy()
+        if (result1 == 2 or result2 == 2) and (result1 >= 0 and result2 >= 0) and (result1 <= 2 and result2 <= 2) and (result1 != result2):
+            if result1 > result2:
+                winner_team = 1
+            else:
+                winner_team = 2
+        else:
+            print("Ergebnis unplausibel!")
+            return
+        self.game.scoreTeam1 = result1
+        self.game.scoreTeam2 = result2
+        db.update_game(self.game)
+        db.rerank_games()
             
-
-
 
 if __name__ == "__main__":
     app = KickerApp()

@@ -597,14 +597,25 @@ class AdminPage(tk.Frame):
         result2 = tk.Entry(self, text="Result Team 2")
         result2.pack(side="left", fill="x")
 
-        change_button = tk.Button(self, text="Change Result",
-                           command=lambda: self.authenticate(int(result1.get()), int(result2.get())))
+        change_button = tk.Button(
+            self,
+            text="Change Result",
+            command=lambda: self.authenticate(
+                action=lambda: self._update_game(int(result1.get()), int(result2.get()))))
+        change_button.pack(side="left", fill="x")
+        change_button = tk.Button(
+            self,
+            text="Delete Game",
+            command=lambda: self.authenticate(
+                action=lambda: self._delete_game()))
         change_button.pack(side="left", fill="x")
 
         def show_game(Entry):
             game_id = Entry.get()
             if game_id is not '':
                 self.game = db.get_game(game_id)
+                if self.game is None:
+                    return
                 team1['text'] = "Team 1: {p1}/{p2}".format(p1=self.game.player1.name, p2=self.game.player2.name)
                 team2['text'] = "Team 2: {p1}/{p2}".format(p1=self.game.player3.name, p2=self.game.player4.name)
                 result1.delete(0, tk.END)
@@ -612,7 +623,9 @@ class AdminPage(tk.Frame):
                 result2.delete(0, tk.END)
                 result2.insert(0, str(self.game.scoreTeam2))
 
-    def authenticate(self, result1, result2):
+    def authenticate(self, action):
+        if self.game == None:
+            return
         self.win = tk.Toplevel()
         self.win.wm_title("Authentifizierung")
 
@@ -631,22 +644,22 @@ class AdminPage(tk.Frame):
 
         self.win.update()
 
-        self.after(100, self.SkanToken(result1, result2))
+        self.after(100, self.SkanToken(action))
 
-    def SkanToken(self, result1, result2):
+    def SkanToken(self, action):
         if self.cancelAuthentication:
             return
         token = rfidReader.TryGetToken()
         if token != None:
             # Check if token belongs to admin
             if adb.get_admin(token):
-                self._update_game(result1, result2)
+                action()
             else:
                 self.PopupMsg.set("Kein Admin-Token\n"
                                   "Bitte Admin-Token scannen.")
-                self.after(100, self.SkanToken(result1, result2))
+                self.after(100, self.SkanToken(action))
         else:
-            self.after(100, self.SkanToken(result1, result2))
+            self.after(100, self.SkanToken(action))
 
     def _update_game(self, result1, result2):
         self.win.destroy()
@@ -662,7 +675,12 @@ class AdminPage(tk.Frame):
         self.game.scoreTeam2 = result2
         db.update_game(self.game)
         db.rerank_games()
-            
+
+    def _delete_game(self):
+        self.win.destroy()
+        db.delete_game(self.game.id)
+        db.rerank_games()
+        self.game = None
 
 if __name__ == "__main__":
     app = KickerApp()

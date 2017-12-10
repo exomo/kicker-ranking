@@ -18,13 +18,19 @@ try:
         return uid
 except:
     global fakeId
+    global request_count
     fakeId = 42424242424242
+    request_count = 0
     def getToken():
         global fakeId
-        time.sleep(2)
-        uid = str(fakeId)
-        fakeId += 1
-        return uid
+        global request_count
+        if request_count >= 15:
+            uid = str(fakeId)
+            fakeId += 1
+            request_count = 0
+            return uid
+        else:
+            request_count += 1
 
 class rfid():
     """

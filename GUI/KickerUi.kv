@@ -1,0 +1,288 @@
+#:kivy 1.10
+<KickerWidget>:
+    do_default_tab: False
+    tab_width: (self.width - 5) / 3
+
+    TabbedPanelItem:
+        text: "Rangliste"
+        PlayerPage:
+    
+    TabbedPanelItem:
+        text: "Spiele"
+        GamePage:
+    
+    TabbedPanelItem:
+        text: "Admin"
+        AdminPage:
+
+<PlayerPage>:
+    orientation: 'vertical'
+    ranking_list: ranking_list
+    RankingListHeader:
+        size_hint: 1, 0.1
+        size_y: dp(10)
+    RankingList:
+        id: ranking_list
+        viewclass: 'RankingListItem'
+        RecycleBoxLayout:
+            default_size: None, dp(35)
+            default_size_hint: 1, None
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+            spacing: dp(2)
+    Button:
+        text: 'Neuer Spieler'
+        size_hint: 1, 0.1
+        on_release: root.new_player()
+
+<RankingListHeader@BoxLayout>:
+    orientation: 'horizontal'
+    Label:
+        text: '[b]#[/b]'
+        markup: True
+        size_hint_x: None
+        size_x: dp(.2)
+        text_size: self.size
+        halign: 'right'
+        valign: 'middle'
+        padding_x: dp(15)
+    Label:
+        text: '[b]Spieler[/b]'
+        markup: True
+        text_size: self.size
+        halign: 'left'
+        valign: 'middle'
+    Label:
+        text: '[b]Bewertung[/b]'
+        markup: True
+        size_hint_x: None
+        size_x: dp(.2)
+    Label:
+        text: '[b]\u03C3[/b]'
+        markup: True
+        size_hint_x: None
+        size_x: dp(.2)
+
+<RankingListItem@BoxLayout>:
+    orientation: 'horizontal'
+    rank: 0
+    score: .0
+    sigma: .0
+    name: ''
+    canvas.before:
+        Color:
+            # alternating colors
+            r: .5 if (self.rank % 2) else 0.3
+            g: .5 if (self.rank % 2) else 0.3
+            b: .5 if (self.rank % 2) else 0.3
+            a: 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    Label:
+        text: '{rank}.'.format(rank=root.rank)
+        size_hint_x: None
+        size_x: dp(.2)
+        text_size: self.size
+        halign: 'right'
+        valign: 'middle'
+        padding_x: dp(15)
+    Label:
+        text: root.name
+        text_size: self.size
+        halign: 'left'
+        valign: 'middle'
+    Label:
+        text: '{score:.2f}'.format(score=root.score)
+        size_hint_x: None
+        size_x: dp(.2)
+    Label:
+        text: '{sigma:.2f}'.format(sigma=root.sigma)
+        size_hint_x: None
+        size_x: dp(.2)
+
+<NewPlayerPopup>:
+    title: 'Neuer Spieler'
+    auto_dismiss: False
+    enable_ok: True
+    size_hint: None, None
+    player_name: player_name
+    token_id: 'Hallo'
+    size: 400, 400
+    BoxLayout:
+        orientation: 'vertical'
+        Image:
+            source: root.display_image
+            size_hint_y: 0.5
+        Label:
+            text: root.hint_new_player
+            size_hint_y: 0.2
+        Label:
+            text: 'Name:'
+            size_hint: 1, .1
+        TextInput:
+            id: player_name
+            multiline: False
+            size_hint: 1, .15
+            focus: True
+            text_validate_unfocus: False
+            hint_text: 'Spielername eingeben'
+            on_text: root.validate_input()
+            on_text_validate: if root.enable_ok: root.on_ok()
+            # on_focus: root.on_focus(*args)
+        BoxLayout:
+            size_hint_y: 0.1
+            orientation: 'horizontal'
+            Button:
+                text: 'Abbrechen'
+                on_release: root.dismiss()
+            Button:
+                text: 'OK'
+                disabled: not root.enable_ok
+                on_release: root.on_ok()
+    
+
+<GamePage>:    
+    orientation: 'vertical'
+    game_list: game_list
+    GameListHeader:
+        size_hint: 1, 0.1
+        size_y: dp(10)
+    GameList:
+        id: game_list
+        viewclass: 'GameListItem'
+        RecycleBoxLayout:
+            default_size: None, dp(35)
+            default_size_hint: 1, None
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+            spacing: dp(2)
+    Button:
+        text: 'Neues Spiel'
+        size_hint: 1, 0.1
+        on_release: root.new_game("Hallo")
+
+<GameListHeader@BoxLayout>:
+    orientation: 'horizontal'
+    Label:
+        text: '[b]#[/b]'
+        markup: True
+        size_hint_x: None
+        size_x: dp(25)
+        text_size: self.size
+        halign: 'center'
+        valign: 'middle'
+    Label:
+        text: '[b]Team 1[/b]'
+        markup: True
+        size_hint_x: 1
+        text_size: self.size
+        halign: 'left'
+        valign: 'middle'
+    Label:
+        text: '[b]Ergebnis[/b]'
+        markup: True
+        size_hint_x: None
+        size_x: dp(25)
+    Label:
+        text: '[b]Team 2[/b]'
+        markup: True
+        size_hint_x: 1
+        size_x: dp(.2)
+
+<GameListItem@BoxLayout>:
+    orientation: 'horizontal'
+    oddline: False
+    game_id: 0
+    score1: 0
+    score2: 0
+    player1: ''
+    player2: ''
+    player3: ''
+    player4: ''
+    canvas.before:
+        Color:
+            # alternating colors
+            r: .5 if self.oddline else 0.3
+            g: .5 if self.oddline else 0.3
+            b: .5 if self.oddline else 0.3
+            a: 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    Label:
+        text: '{id}'.format(id=root.game_id)
+        size_hint_x: None
+        size_x: dp(25)
+        text_size: self.size
+        halign: 'center'
+        valign: 'middle'
+    Label:
+        text: '{player1} + {player2}.'.format(player1=root.player1, player2=root.player2)
+        size_hint_x: 1
+        text_size: self.size
+        halign: 'right'
+        valign: 'middle'
+        #padding_x: dp(15)
+    Label:
+        text: '{score1:d} : {score2:d}'.format(score1=root.score1, score2=root.score2)
+        size_hint_x: None
+        size_x: dp(25)
+        text_size: self.size
+        halign: 'center'
+        valign: 'middle'
+    Label:
+        text: '{player3} + {player4}.'.format(player3=root.player3, player4=root.player4)
+        size_hint_x: 1
+        text_size: self.size
+        halign: 'left'
+        valign: 'middle'
+        #padding_x: dp(15)
+
+<NewGamePopup>:
+    title: 'Neuer Spieler'
+    auto_dismiss: False
+    enable_ok: True
+    size_hint: None, None
+    size: 300, 400
+    player_name: player_name
+    token_id: 'Hallo'
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: "Neues Spiel"
+        Label:
+            text: 'Name:'
+            size_hint: 1, .1
+        TextInput:
+            id: player_name
+            multiline: False
+            size_hint: 1, .15
+            focus: True
+            text_validate_unfocus: False
+            hint_text: 'Spielername eingeben'
+            #on_text: root.validate_input()
+            #on_text_validate: if root.enable_ok: root.on_ok()
+            # on_focus: root.on_focus(*args)
+        BoxLayout:
+            size_hint_y: 0.1
+            orientation: 'horizontal'
+            Button:
+                text: 'Abbrechen'
+                on_release: root.dismiss()
+            Button:
+                text: 'OK'
+                disabled: not root.enable_ok
+                #on_release: root.on_ok()
+        
+<AdminPage@BoxLayout>:
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: "Admin panel noch nicht implementiert"
+        Button:
+            text: "Zurück zur Spieleliste"
+            size_hint: 1, 0.1
+            on_release: app.switch_tab(1)

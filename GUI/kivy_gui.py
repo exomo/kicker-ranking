@@ -132,9 +132,37 @@ class NewPlayerPopup(Popup):
         self.timer.cancel()
 
 class GamePage(BoxLayout):
+    game_list = ObjectProperty()
 
     def new_game(self, text):
-        print(text)
+        """show popup to add new game"""
+        popup = NewGamePopup()
+        popup.open()
+        print("Show the 'New Game' popup")
+        self.game_list.refresh()
+
+class GameList(RecycleView):
+    def __init__(self, **kwargs):
+        super(GameList, self).__init__(**kwargs)
+        self.refresh()
+
+    def refresh(self):
+        games = db.get_games(20)
+        self.data = [
+            {
+                'game_id' : game.id,
+                'player1' : game.player1.name,
+                'player2' : game.player2.name,
+                'player3' : game.player3.name,
+                'player4' : game.player4.name,
+                'score1'  : game.scoreTeam1,
+                'score2'  : game.scoreTeam2,
+                'oddline': i % 2 == 0
+            }
+            for i, game in enumerate(games)]
+
+class NewGamePopup(Popup):
+    pass
 
 class KickerApp(App):
     """
@@ -142,8 +170,8 @@ class KickerApp(App):
     """
     def build(self):
         # Builder.load_file("GUI/KickerApp.kv", encoding='utf8')
-        # with open("GUI/KickerApp.kv", encoding='utf8') as f:
-        #     Builder.load_string(f.read())
+        with open("GUI/KickerUi.kv", encoding='utf8') as f:
+            Builder.load_string(f.read())
         self.title = "~ ITK Kicker Rangliste ~"
         self.tab_widget = KickerWidget()
         return self.tab_widget

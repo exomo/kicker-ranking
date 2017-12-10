@@ -87,6 +87,8 @@ class Game():
 
     time = property(get_time, set_time)
 
+    id = property(get_id, set_id)
+
     def save_to_database(self, winner_team, db, update=False):
         if update is False:
             db.add_game(self)

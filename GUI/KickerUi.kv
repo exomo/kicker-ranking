@@ -124,7 +124,7 @@
         TextInput:
             id: player_name
             multiline: False
-            size_hint: 1, .15
+            size_hint: 1, .1
             focus: True
             text_validate_unfocus: False
             hint_text: 'Spielername eingeben'
@@ -220,7 +220,7 @@
         halign: 'center'
         valign: 'middle'
     Label:
-        text: '{player1} + {player2}.'.format(player1=root.player1, player2=root.player2)
+        text: '{player1} + {player2}'.format(player1=root.player1, player2=root.player2)
         size_hint_x: 1
         text_size: self.size
         halign: 'right'
@@ -234,7 +234,7 @@
         halign: 'center'
         valign: 'middle'
     Label:
-        text: '{player3} + {player4}.'.format(player3=root.player3, player4=root.player4)
+        text: '{player3} + {player4}'.format(player3=root.player3, player4=root.player4)
         size_hint_x: 1
         text_size: self.size
         halign: 'left'
@@ -246,7 +246,7 @@
     auto_dismiss: False
     enable_ok: True
     size_hint: None, None
-    size: 300, 400
+    size: 600, 400
     player_name: player_name
     token_id: 'Hallo'
     BoxLayout:

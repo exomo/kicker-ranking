@@ -20,7 +20,10 @@ NORM_FONT = ("Verdana", 10)
 SMALL_FONT = ("Verdana", 8)
 
 kickerDB = "kicker_scores.db"
+adminDB = "kicker_admin.db"
+
 db = database.Database(kickerDB)
+adb = database.Database(adminDB)
 
 rfidReader = rfid.rfid()
 
@@ -270,7 +273,7 @@ class GamePage(tk.Frame):
 
         self.gameList.delete(*self.gameList.get_children())
 
-        games = db.get_last_games()
+        games = db.get_games(100)
 
         for i, game in enumerate(games):
             if i%2 == 0:
@@ -345,31 +348,25 @@ class NewGamePage(tk.Frame):
         labelPlayer4 = tk.Label(self, textvariable=self.player4Name)
         labelPlayer4.grid(row=4, column=6, columnspan=3)
 
-        r1minus = tk.Button(self, text="-", command=lambda: decrease(result1))
+        r1minus = tk.Button(self, text="-", command=lambda: decrease(self.result1))
         r1minus.grid(row=7, column=0)
 
-        result1 = tk.Entry(self, text="Result Team 1")
-        result1.grid(row=7, column=1)
+        self.result1 = tk.Entry(self, text="Result Team 1")
+        self.result1.grid(row=7, column=1)
 
-        result1.delete(0, tk.END)
-        result1.insert(0, "0")
-
-        r1plus = tk.Button(self, text="+", command=lambda: increase(result1))
+        r1plus = tk.Button(self, text="+", command=lambda: increase(self.result1))
         r1plus.grid(row=7, column=2)
 
-        r2minus = tk.Button(self, text="-", command=lambda: decrease(result2))
+        r2minus = tk.Button(self, text="-", command=lambda: decrease(self.result2))
         r2minus.grid(row=7, column=6)
 
-        result2 = tk.Entry(self, text="Result Team 2")
-        result2.grid(row=7, column=7)
+        self.result2 = tk.Entry(self, text="Result Team 2")
+        self.result2.grid(row=7, column=7)
 
-        result2.delete(0, tk.END)
-        result2.insert(0, "0")
-
-        r2plus = tk.Button(self, text="+", command=lambda: increase(result2))
+        r2plus = tk.Button(self, text="+", command=lambda: increase(self.result2))
         r2plus.grid(row=7, column=8)
 
-        auswerten = tk.Button(self, text="Spiel werten", command=lambda: self.confirm_result(int(result1.get()), int(result2.get())))
+        auswerten = tk.Button(self, text="Spiel werten", command=lambda: self.confirm_result(int(self.result1.get()), int(self.result2.get())))
         auswerten.grid(row=8, column=0, columnspan=9)
 
         def increase(Entry):
@@ -429,6 +426,14 @@ class NewGamePage(tk.Frame):
             self.player2Name.set(NewGamePage.game.player2.name)
             self.player3Name.set(NewGamePage.game.player3.name)
             self.player4Name.set(NewGamePage.game.player4.name)
+
+        self.result1.delete(0, tk.END)
+        self.result1.insert(0, "0")
+
+        self.result2.delete(0, tk.END)
+        self.result2.insert(0, "0")
+
+        self.controller.update_idletasks()
 
 class PlayerPage(tk.Frame):
     """
@@ -518,9 +523,8 @@ class PlayerPage(tk.Frame):
         self.win.wm_title("Neuer Spieler")
         l = tk.Label(self.win, text="Name:")
         l.grid(row=1, column=0)
-        self.name_var = tk.StringVar(self.win)
-        self.e2 = tk.Entry(self.win, text="Enter Name", textvariable=self.name_var)
-        self.name_var.set("")
+        self.e2 = tk.Entry(self.win, text="Enter Name")
+        self.e2.delete(0, tk.END)
         self.controller.update_idletasks()
         self.e2.grid(row=1, column=1)
         self.e2.focus_set()
@@ -574,10 +578,91 @@ class AdminPage(tk.Frame):
         self.controller = controller
         label = tk.Label(self, text="This is the administration interface", font=controller.title_font)
         label.pack(side="top", fill="x", pady=10)
-        button = tk.Button(self, text="Go to the game page",
-                           command=lambda: controller.show_frame("GamePage"))
-        button.pack()
+        id_entry = tk.Entry(self, text="Game-ID")
+        id_entry.pack(side="left", fill="x")
 
+        load_button = tk.Button(self, text="Load Game",
+                           command=lambda: show_game(id_entry))
+        load_button.pack(side="left", fill="x")
+
+        team1 = tk.Label(self, text="Team 1:")
+        team1.pack(side="left", fill="x", pady=10)
+
+        result1 = tk.Entry(self, text="Result Team 1")
+        result1.pack(side="left", fill="x")
+
+        team2 = tk.Label(self, text="Team 2:")
+        team2.pack(side="left", fill="x", pady=10)
+
+        result2 = tk.Entry(self, text="Result Team 2")
+        result2.pack(side="left", fill="x")
+
+        change_button = tk.Button(self, text="Change Result",
+                           command=lambda: self.authenticate(int(result1.get()), int(result2.get())))
+        change_button.pack(side="left", fill="x")
+
+        def show_game(Entry):
+            game_id = Entry.get()
+            if game_id is not '':
+                self.game = db.get_game(game_id)
+                team1['text'] = "Team 1: {p1}/{p2}".format(p1=self.game.player1.name, p2=self.game.player2.name)
+                team2['text'] = "Team 2: {p1}/{p2}".format(p1=self.game.player3.name, p2=self.game.player4.name)
+                result1.delete(0, tk.END)
+                result1.insert(0, str(self.game.scoreTeam1))
+                result2.delete(0, tk.END)
+                result2.insert(0, str(self.game.scoreTeam2))
+
+    def authenticate(self, result1, result2):
+        self.win = tk.Toplevel()
+        self.win.wm_title("Authentifizierung")
+
+        self.PopupMsg = tk.StringVar()
+        self.PopupMsg.set("Bitte Admin-Token scannen.")
+        l = tk.Label(self.win, textvariable=self.PopupMsg)
+        l.grid(row=0, column=0)
+        self.cancelAuthentication = False
+
+        def cancelScan():
+            self.cancelAuthentication = True
+            self.win.destroy()
+
+        b = tk.Button(self.win, text="Abbrechen", command=cancelScan)
+        b.grid(row=1, column=0)
+
+        self.win.update()
+
+        self.after(100, self.SkanToken(result1, result2))
+
+    def SkanToken(self, result1, result2):
+        if self.cancelAuthentication:
+            return
+        token = rfidReader.TryGetToken()
+        if token != None:
+            # Check if token belongs to admin
+            if adb.get_admin(token):
+                self._update_game(result1, result2)
+            else:
+                self.PopupMsg.set("Kein Admin-Token\n"
+                                  "Bitte Admin-Token scannen.")
+                self.after(100, self.SkanToken(result1, result2))
+        else:
+            self.after(100, self.SkanToken(result1, result2))
+
+    def _update_game(self, result1, result2):
+        self.win.destroy()
+        if (result1 == 2 or result2 == 2) and (result1 >= 0 and result2 >= 0) and (result1 <= 2 and result2 <= 2) and (result1 != result2):
+            if result1 > result2:
+                winner_team = 1
+            else:
+                winner_team = 2
+        else:
+            print("Ergebnis unplausibel!")
+            return
+        self.game.scoreTeam1 = result1
+        self.game.scoreTeam2 = result2
+        db.update_game(self.game)
+        db.rerank_games()
+            
 
 if __name__ == "__main__":
     app = KickerApp()

@@ -36,15 +36,16 @@ class Player():
         return self._rating
 
     # -------------------------------------------------------------------------------------------------------------------------------------
-
     # properties
     # -------------------------------------------------------------------------------------------------------------------------------------
     name = property(get_name, set_name)
     tokenID = property(get_tokenID, set_tokenID)
     rating = property(get_rating, set_rating)
-
     # -------------------------------------------------------------------------------------------------------------------------------------
 
     def show_player(self):
         print(self)
         print()
+
+    def reset_rating(self):
+        self._rating = trueskill.Rating()

@@ -127,11 +127,23 @@ class Database():
 
         return games
 
-    def get_game(self, id):
+    def get_game_ids(self):
+        """"Get ids of all games"""
+        cur = self.database.cursor()
+        cur.execute("SELECT id FROM games ORDER BY id ASC")
+        ids = []
+        for entry in cur:
+            ids.append(entry[0])
+        return ids
+
+    def get_game(self, game_id):
         """Get game with id"""
         cur = self.database.cursor()
-        cur.execute("SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score FROM games WHERE id=?", [id])
+        cur.execute("SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score FROM games WHERE id=?", [game_id])
         result = cur.fetchone()
+
+        if result is None:
+            return None
 
         game = Game.Game()
         game.time = result[0]
@@ -157,9 +169,14 @@ class Database():
             game.player4.name = "Unregistered Player"
         game.scoreTeam1 = result[5]
         game.scoreTeam2 = result[6]
-        game.id = int(id)
+        game.id = int(game_id)
 
         return game
+
+    def delete_game(self, game_id):
+        print("Delete game:\n {0}".format(game_id))
+        self.database.execute("DELETE FROM games WHERE id=?", [game_id])
+        self.database.commit()
 
     def rerank_games(self):
         # load players
@@ -170,12 +187,12 @@ class Database():
             self.update_player_skill(p)
 
         # load games
-        games = self.get_games() #TODO: Number of games in db would be sufficient
+        game_ids = self.get_game_ids()
 
         # rate game
-        for i in range(len(games)):
+        for gid in game_ids:
             # Get game with updated player ratings
-            g = self.get_game(i+1)
+            g = self.get_game(gid)
             if g.scoreTeam1 > g.scoreTeam2:
                 winner_team = 1
             else:

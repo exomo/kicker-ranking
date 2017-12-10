@@ -108,15 +108,19 @@
     enable_ok: True
     size_hint: None, None
     player_name: player_name
-    token_id: 'Hallo'
     size: 400, 400
+    scan_token_label_text: 'Bitte Token einscannen'
+    scan_token_label_success_text: '[color=22DD22][b]Token erfolgreich gelesen.[/b][/color]\nBitte Namen eingeben\nund bestätigen.'
+    scan_token_label_error_text: '[color=FF0000][b]Spieler existiert bereits.\nBitte anderes Token scannen\noder abbrechen.[/b][/color]'
+  
     BoxLayout:
         orientation: 'vertical'
         Image:
             source: root.display_image
             size_hint_y: 0.5
         Label:
-            text: root.hint_new_player
+            text: root.scan_token_label_text
+            markup: True
             size_hint_y: 0.2
         Label:
             text: 'Name:'
@@ -130,6 +134,7 @@
             hint_text: 'Spielername eingeben'
             on_text: root.validate_input()
             on_text_validate: if root.enable_ok: root.on_ok()
+            disabled: True
             # on_focus: root.on_focus(*args)
         BoxLayout:
             size_hint_y: 0.1

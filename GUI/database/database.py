@@ -33,6 +33,15 @@ class Database():
         else:
             return None
 
+    def get_player_by_name(self, name):
+        cur = self.database.cursor()
+        cur.execute("SELECT * FROM players WHERE name=?", [name])
+        result = cur.fetchone()
+        if result != None:
+            return self.create_player(result)
+        else:
+            return None
+
     def get_admin(self, token_id):
         cur = self.database.cursor()
         cur.execute("SELECT * FROM admins WHERE token_id=?", [token_id])

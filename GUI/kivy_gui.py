@@ -86,15 +86,16 @@ class RankingList(RecycleView):
 class NewPlayerPopup(Popup):
     enable_ok = BooleanProperty()
     player_name = ObjectProperty()
-    token_id = StringProperty()
-    hint_new_player = StringProperty()
+    token_id = StringProperty() 
+    scan_token_label_text = StringProperty()
+    scan_token_label_error_text = StringProperty()
+    scan_token_label_success_text = StringProperty()
     display_image = StringProperty('empty.png')
 
     def __init__(self, ranking_list, **kwargs):
         super(NewPlayerPopup, self).__init__(**kwargs)
         self.ranking_list = ranking_list
-        self.timer = Clock.schedule_interval(self.on_interval, 0.5)
-        self.hint_new_player = 'Bitte Token einlesen'
+        self.timer = Clock.schedule_interval(self.on_interval, 0.1)
 
     def on_interval(self, time_elapsed):
         token = rfidReader.TryGetToken()
@@ -102,12 +103,15 @@ class NewPlayerPopup(Popup):
             # Check if token is already registered
             if db.get_player(token) is None:
                 self.display_image = 'check.png'
-                self.hint_new_player = 'Token erfolgreich gelesen.\nBitte Namen eingeben\nund bestätigen.'
+                self.scan_token_label_text = self.scan_token_label_success_text
                 self.token_id = token
-                self.timer.cancel()
+                self.timer.cancel() 
+                self.player_name.disabled = False
+                self.player_name.focus = True
+                self.validate_input()
             else:
                 self.display_image = 'error.png'
-                self.hint_new_player = 'Spieler existiert bereits.\nBitte anderes Token scannen\noder abbrechen.'
+                self.scan_token_label_text = self.scan_token_label_error_text
                 print("Player already exists! Please scan another token.")     
 
     def on_ok(self):
@@ -117,7 +121,15 @@ class NewPlayerPopup(Popup):
 
     def validate_input(self):
         #TODO: Check that name is unique, show validation error
-        self.enable_ok = self.player_name.text and self.token_id
+        if self.player_name.text:
+            player = db.get_player_by_name(self.player_name.text)
+            if player is None:
+                self.enable_ok = bool(self.token_id)
+            else:
+                # todo: Show an error message if gthe player name is already used by someone else
+                self.enable_ok = False
+        else:
+            self.enable_ok = False
 
     def focus_name_input(self, t):
         self.player_name.focus = True
@@ -268,9 +280,16 @@ class KickerApp(App):
     Main class of GUI, specifies basic layout.
     """
     def build(self):
-        # Builder.load_file("GUI/KickerApp.kv", encoding='utf8')
-        with open("GUI/KickerUi.kv", encoding='utf8') as f:
-            Builder.load_string(f.read())
+        # workaround for some issues with auto loading the kv file
+        # - on windows, the file is read with wrong encoding, this is solved by loading the file
+        #   explicitly and passing the correctly read file contents to the builder instead of 
+        #   relying on the automatic loading of kv files
+        # - on linux the kv file is only auto-loaded if it is in the current directory, which would
+        #   be the directory above GUI, but we want the kv to be inside GUI
+        # - in windows the automatic load would also happen from inside GUI if the kv file name was
+        #   like the App (Kicker.kv), the file must have a different name to prevent the auto load
+        with open("GUI/KickerUi.kv", encoding='utf8') as kvFile:
+            Builder.load_string(kvFile.read())
         self.title = "~ ITK Kicker Rangliste ~"
         self.tab_widget = KickerWidget()
         return self.tab_widget

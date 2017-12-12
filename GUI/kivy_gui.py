@@ -136,7 +136,7 @@ class GamePage(BoxLayout):
 
     def new_game(self, text):
         """show popup to add new game"""
-        popup = NewGamePopup()
+        popup = NewGamePopup(self.game_list)
         popup.open()
         print("Show the 'New Game' popup")
         self.game_list.refresh()
@@ -162,7 +162,42 @@ class GameList(RecycleView):
             for i, game in enumerate(games)]
 
 class NewGamePopup(Popup):
-    pass
+    """Popup to enter a new game"""
+    team1 = ObjectProperty() 
+    team2 = ObjectProperty() 
+
+    def __init__(self, game_list, **kwargs):
+        super(NewGamePopup, self).__init__(**kwargs)
+        self.game_list = game_list
+        self.players = []
+        #self.timer = Clock.schedule_interval(self.on_interval, 0.1)
+        #self.team1.player1 = 'Spieler 1\n[b]Bitte Token einlesen[/b]'
+
+    def on_interval(self, time_elapsed):
+        token = rfidReader.TryGetToken()
+        if token is not None:
+            player = db.get_player(token)
+            if player is not None and not player.tokenID in [p.tokenID for p in self.players]:
+                self.players.append(player)
+                player_number = len(self.players)
+                if player_number == 1:
+                    self.team1.player1 = player.name
+                    self.team1.player2 = 'Spieler 2\n[b]Bitte Token einlesen[/b]'
+                elif player_number == 2:
+                    self.team1.player2 = player.name
+                    self.team2.player1 = 'Spieler 3\n[b]Bitte Token einlesen[/b]'
+                elif player_number == 3:
+                    self.team2.player1 = player.name
+                    self.team2.player2 = 'Spieler 4\n[b]Bitte Token einlesen[/b]'
+                elif player_number == 4:
+                    self.team2.player2 = player.name
+                    self.timer.cancel()
+
+    def on_ok(self):
+        print('{:d} : {:d}'.format(self.team1.score, self.team2.score))
+
+    def on_dismiss(self):
+        self.timer.cancel()
 
 class KickerApp(App):
     """

@@ -242,30 +242,41 @@
         #padding_x: dp(15)
 
 <NewGamePopup>:
-    title: 'Neuer Spieler'
+    title: 'Neues Spiel'
     auto_dismiss: False
     enable_ok: True
     size_hint: None, None
-    size: 600, 400
-    player_name: player_name
-    token_id: 'Hallo'
+    size: 700, 450
+    #team1: team1
+    #team2: team2
     BoxLayout:
         orientation: 'vertical'
-        Label:
-            text: "Neues Spiel"
-        Label:
-            text: 'Name:'
-            size_hint: 1, .1
-        TextInput:
-            id: player_name
-            multiline: False
-            size_hint: 1, .15
-            focus: True
-            text_validate_unfocus: False
-            hint_text: 'Spielername eingeben'
-            #on_text: root.validate_input()
-            #on_text_validate: if root.enable_ok: root.on_ok()
-            # on_focus: root.on_focus(*args)
+        BoxLayout:
+            canvas.before:
+                Color:
+                    rgba: 0,1,0,1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            orientation: 'horizontal'
+            size_hint_y: 1
+            TeamDisplay:
+                id: team1
+                team: 'Team 1'
+                size_hint: 1, 0.25
+            Image:
+                canvas.before:
+                    Color:
+                        rgba: 0,0,1,1
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos
+                source: 'GUI/Kicker_top.jpg'
+                size_hint_x: 0.5
+            TeamDisplay:
+                id: team2
+                team: 'Team 2'
+                size_hint: 1, 0.25
         BoxLayout:
             size_hint_y: 0.1
             orientation: 'horizontal'
@@ -275,8 +286,64 @@
             Button:
                 text: 'OK'
                 disabled: not root.enable_ok
-                #on_release: root.on_ok()
+                on_release: root.on_ok()
         
+<TeamDisplay@BoxLayout>:
+    canvas.before:
+        Color:
+            rgba: 1,0,0,1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    team: ''
+    player1: ''
+    player2: ''
+    score: 0
+    orientation: 'vertical'
+    Label:
+        text: '[b]' + root.team + '[/b]'
+        markup: True
+        size_hint_y: 0.1
+        halign: 'center'
+        valign: 'top'
+        canvas.before:
+            Color:
+                rgba: 0,1,1,1
+            Rectangle:
+                size: self.size
+                pos: self.pos
+    Label:
+        text: root.player1
+        markup: True
+        size_hint_y: 0.5
+        halign: 'center'
+        valign: 'middle'
+    Label:
+        text: '&'
+        markup: True
+        size_hint_y: 0.1
+        halign: 'center'
+        valign: 'middle'
+    Label:
+        text: root.player2
+        markup: True
+        size_hint_y: 0.5
+        halign: 'center'
+        valign: 'middle'
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 0.1
+        size_hint_y: 0.2
+        Button:
+            text: '-'
+            on_release: root.score -= 1
+        TextInput:
+            id: team1_score
+            text: str(root.score)
+        Button:
+            text: '+'
+            on_release: root.score += 1      
+
 <AdminPage@BoxLayout>:
     BoxLayout:
         orientation: 'vertical'

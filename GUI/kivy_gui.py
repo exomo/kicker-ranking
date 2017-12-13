@@ -170,8 +170,8 @@ class NewGamePopup(Popup):
         super(NewGamePopup, self).__init__(**kwargs)
         self.game_list = game_list
         self.players = []
-        #self.timer = Clock.schedule_interval(self.on_interval, 0.1)
-        #self.team1.player1 = 'Spieler 1\n[b]Bitte Token einlesen[/b]'
+        self.timer = Clock.schedule_interval(self.on_interval, 0.1)
+        self.team1.player1 = 'Spieler 1\n[b]Bitte Token einlesen[/b]'
 
     def on_interval(self, time_elapsed):
         token = rfidReader.TryGetToken()
@@ -191,13 +191,77 @@ class NewGamePopup(Popup):
                     self.team2.player2 = 'Spieler 4\n[b]Bitte Token einlesen[/b]'
                 elif player_number == 4:
                     self.team2.player2 = player.name
+                    self.enable_ok = True
                     self.timer.cancel()
 
     def on_ok(self):
-        print('{:d} : {:d}'.format(self.team1.score, self.team2.score))
+        result1 = self.team1.score
+        result2 = self.team2.score
+        if (result1 == 2 or result2 == 2) and \
+            (result1 >= 0 and result2 >= 0) and \
+            (result1 <= 2 and result2 <= 2) and \
+            (result1 != result2):
+
+            popup = ConfirmNewGamePopup(
+                team1_score=result1, 
+                team2_score=result2,
+                player1=self.team1.player1,
+                player2=self.team1.player2,
+                player3=self.team2.player1,
+                player4=self.team2.player2)
+            popup.bind(on_confirm=self.on_confirm)
+            popup.open()
+            print('{:d} : {:d}'.format(self.team1.score, self.team2.score))
+        else:
+            popup = GameUnplausiblePopup()
+            popup.open()
 
     def on_dismiss(self):
         self.timer.cancel()
+    
+    def on_confirm(self, sender):
+        """bound to the on_confirm event of the confirmation dialog,
+           stores the game into the database"""
+        if self.team1.score > self.team2.score:
+            winner_team = 1
+        else:
+            winner_team = 2
+        game = Game.Game()
+        game.player1 = self.players[0]
+        game.player2 = self.players[1]
+        game.player3 = self.players[2]
+        game.player4 = self.players[3]
+        game.scoreTeam1 = self.team1.score
+        game.scoreTeam2 = self.team2.score
+        print("Team {0} wins!".format(winner_team))
+        game.save_to_database(winner_team, db)
+
+        self.game_list.refresh()
+        self.dismiss()
+
+class ConfirmNewGamePopup(Popup):
+    team1_score = NumericProperty(0)
+    team2_score = NumericProperty(0)
+    player1 = StringProperty()
+    player2 = StringProperty()
+    player3 = StringProperty()
+    player4 = StringProperty()
+
+    def __init__(self, **kwargs):
+        self.register_event_type('on_confirm')
+        super(ConfirmNewGamePopup, self).__init__(**kwargs)
+
+    def confirm(self):
+        """Dispatch the on_confirm event"""
+        self.dispatch('on_confirm')
+        self.dismiss()
+
+    def on_confirm(self, *args):
+        """Default event handler is required but does nothing"""
+        pass
+
+class GameUnplausiblePopup(Popup):
+    pass
 
 class KickerApp(App):
     """

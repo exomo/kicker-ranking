@@ -244,39 +244,27 @@
 <NewGamePopup>:
     title: 'Neues Spiel'
     auto_dismiss: False
-    enable_ok: True
+    enable_ok: False
     size_hint: None, None
     size: 700, 450
-    #team1: team1
-    #team2: team2
+    team1: team1
+    team2: team2
     BoxLayout:
         orientation: 'vertical'
         BoxLayout:
-            canvas.before:
-                Color:
-                    rgba: 0,1,0,1
-                Rectangle:
-                    size: self.size
-                    pos: self.pos
             orientation: 'horizontal'
             size_hint_y: 1
             TeamDisplay:
                 id: team1
                 team: 'Team 1'
-                size_hint: 1, 0.25
+                size_hint_x: 0.25
             Image:
-                canvas.before:
-                    Color:
-                        rgba: 0,0,1,1
-                    Rectangle:
-                        size: self.size
-                        pos: self.pos
                 source: 'GUI/Kicker_top.jpg'
                 size_hint_x: 0.5
             TeamDisplay:
                 id: team2
                 team: 'Team 2'
-                size_hint: 1, 0.25
+                size_hint_x: 0.25
         BoxLayout:
             size_hint_y: 0.1
             orientation: 'horizontal'
@@ -289,29 +277,17 @@
                 on_release: root.on_ok()
         
 <TeamDisplay@BoxLayout>:
-    canvas.before:
-        Color:
-            rgba: 1,0,0,1
-        Rectangle:
-            size: self.size
-            pos: self.pos
+    orientation: 'vertical'
     team: ''
     player1: ''
     player2: ''
     score: 0
-    orientation: 'vertical'
     Label:
         text: '[b]' + root.team + '[/b]'
         markup: True
         size_hint_y: 0.1
         halign: 'center'
         valign: 'top'
-        canvas.before:
-            Color:
-                rgba: 0,1,1,1
-            Rectangle:
-                size: self.size
-                pos: self.pos
     Label:
         text: root.player1
         markup: True
@@ -332,17 +308,61 @@
         valign: 'middle'
     BoxLayout:
         orientation: 'horizontal'
-        padding: 0.1
+        padding: 4
         size_hint_y: 0.2
         Button:
             text: '-'
-            on_release: root.score -= 1
-        TextInput:
-            id: team1_score
-            text: str(root.score)
+            on_release: root.score -= 1 if root.score > 0 else 0
+        Label:
+            text: '[b]' + str(root.score) +'[/b]'
+            markup: True
+            font_size: '20sp'
         Button:
             text: '+'
-            on_release: root.score += 1      
+            on_release: root.score += 1 if root.score < 2 else 0
+
+<ConfirmNewGamePopup>:
+    title: 'Neues Spiel bestätigen'
+    auto_dismiss: False
+    size_hint: None, None
+    size: 500, 400
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 1
+            Label:
+                text: 'Soll das Spiel mit folgendem Ergebnis gewertet werden?'
+            Label:
+                text: '{p1} / {p2}'.format(p1 = root.player1, p2 = root.player2)
+            Label:
+                text: str(root.team1_score) + ' : ' + str(root.team2_score)
+            Label:
+                text: '{p3} / {p4}'.format(p3 = root.player3, p4 = root.player4)
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+            Button:
+                text: 'Abbrechen'
+                on_release: root.dismiss()
+            Button:
+                text: 'Bestätigen'
+                on_release: root.confirm()
+
+<GameUnplausiblePopup>:
+    title: 'Spielergebnis unplausibel'
+    auto_dismiss: False
+    size_hint: None, None
+    size: 300, 200
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, 1
+        Label: 
+            text: 'Das Spiels muss einen\neindeutigen Sieger haben'
+        Button:
+            text: 'Ok'
+            size_hint_y: 0.3
+            on_release: root.dismiss()
 
 <AdminPage@BoxLayout>:
     BoxLayout:

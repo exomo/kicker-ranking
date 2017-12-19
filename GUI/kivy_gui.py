@@ -300,4 +300,10 @@ class KickerApp(App):
             print(t.content)
 
 if __name__ == "__main__":
+    if 'mpmath' in trueskill.backends.available_backends():
+        # mpmath can be used in the current environment
+        backend = 'mpmath'
+    else:
+        backend = None
+    trueskill.setup(mu=MU, sigma=SIGMA, beta=BETA, tau=TAU, draw_probability=DRAW_PROBABILITY, backend=backend) # Es gibt kein Unentschieden
     KickerApp().run()

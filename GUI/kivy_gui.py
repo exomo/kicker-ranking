@@ -120,13 +120,14 @@ class NewPlayerPopup(Popup):
         self.dismiss()
 
     def validate_input(self):
-        #TODO: Check that name is unique, show validation error
         if self.player_name.text:
             player = db.get_player_by_name(self.player_name.text)
             if player is None:
                 self.enable_ok = bool(self.token_id)
+                self.scan_token_label_text = self.scan_token_label_success_text
             else:
                 # todo: Show an error message if gthe player name is already used by someone else
+                self.scan_token_label_text = self.name_error_text
                 self.enable_ok = False
         else:
             self.enable_ok = False

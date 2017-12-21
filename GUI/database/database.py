@@ -99,9 +99,9 @@ class Database():
         """Get the last number games"""
         cur = self.database.cursor()
         if number is None:
-            select_statement = "SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score, id FROM games ORDER BY timestamp DESC"
+            select_statement = "SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score, id FROM games ORDER BY id DESC"
         else:
-            select_statement = "SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score, id FROM games ORDER BY timestamp DESC LIMIT {n}".format(n=number)
+            select_statement = "SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score, id FROM games ORDER BY id DESC LIMIT {n}".format(n=number)
 
         cur.execute(select_statement)
 

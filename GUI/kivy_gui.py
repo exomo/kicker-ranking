@@ -146,10 +146,11 @@ class NewPlayerPopup(Popup):
 
 class GamePage(BoxLayout):
     game_list = ObjectProperty()
+    player_list = ObjectProperty()
 
     def new_game(self, text):
         """show popup to add new game"""
-        popup = NewGamePopup(self.game_list)
+        popup = NewGamePopup(self.game_list, self.player_list)
         popup.open()
         print("Show the 'New Game' popup")
         self.game_list.refresh()
@@ -179,9 +180,10 @@ class NewGamePopup(Popup):
     team1 = ObjectProperty() 
     team2 = ObjectProperty() 
 
-    def __init__(self, game_list, **kwargs):
+    def __init__(self, game_list, player_list, **kwargs):
         super(NewGamePopup, self).__init__(**kwargs)
         self.game_list = game_list
+        self.player_list = player_list
         self.players = []
         self.timer = Clock.schedule_interval(self.on_interval, 0.1)
         self.team1.player1 = 'Spieler 1\n[b]Bitte Token einlesen[/b]'
@@ -250,6 +252,7 @@ class NewGamePopup(Popup):
         game.save_to_database(winner_team, db)
 
         self.game_list.refresh()
+        self.player_list.refresh()
         self.dismiss()
 
 class ConfirmNewGamePopup(Popup):

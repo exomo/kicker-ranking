@@ -33,6 +33,15 @@ class Database():
         else:
             return None
 
+    def get_player_by_name(self, name):
+        cur = self.database.cursor()
+        cur.execute("SELECT * FROM players WHERE name=?", [name])
+        result = cur.fetchone()
+        if result != None:
+            return self.create_player(result)
+        else:
+            return None
+
     def get_admin(self, token_id):
         cur = self.database.cursor()
         cur.execute("SELECT * FROM admins WHERE token_id=?", [token_id])
@@ -90,9 +99,9 @@ class Database():
         """Get the last number games"""
         cur = self.database.cursor()
         if number is None:
-            select_statement = "SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score, id FROM games ORDER BY timestamp DESC"
+            select_statement = "SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score, id FROM games ORDER BY id DESC"
         else:
-            select_statement = "SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score, id FROM games ORDER BY timestamp DESC LIMIT {n}".format(n=number)
+            select_statement = "SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score, id FROM games ORDER BY id DESC LIMIT {n}".format(n=number)
 
         cur.execute(select_statement)
 

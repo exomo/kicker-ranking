@@ -8,6 +8,7 @@ class Player():
 
     def __init__(self):
         # Variables for every Gamer
+        self._id = 0
         self._name = u""
         self._tokenID = 0
         self._rating = trueskill.Rating()
@@ -17,6 +18,12 @@ class Player():
 
     # setter-, getter-methods
     # -------------------------------------------------------------------------------------------------------------------------------------
+    def set_id(self, id):
+        self._id = id
+
+    def get_id(self):
+        return self._id
+
     def set_name(self, name):
         self._name = name
 
@@ -38,6 +45,7 @@ class Player():
     # -------------------------------------------------------------------------------------------------------------------------------------
     # properties
     # -------------------------------------------------------------------------------------------------------------------------------------
+    id = property(get_id, set_id)
     name = property(get_name, set_name)
     tokenID = property(get_tokenID, set_tokenID)
     rating = property(get_rating, set_rating)

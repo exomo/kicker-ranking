@@ -3,30 +3,60 @@ import sqlite3
 from kicker import player
 from kicker import Game
 import trueskill
+import os.path
 
 class Database():
+    def get_current_version(self):
+        """Returns current database version supported by this file"""
+        return 1
+
     def __init__(self, filename):
-        self.database = sqlite3.connect(filename)
-        # if the database does not exist it is created
-        self.create_database()
+
+        if not os.path.isfile(filename):
+            # if the database does not exist it is created
+            self.database = sqlite3.connect(filename)
+            self.create_database()
+        else:
+            self.database = sqlite3.connect(filename)
+
+        if self.get_version() != self.get_current_version():
+            raise Exception("The version of the database file is not supported. Upgrade the database before starting.")
+        # self.database = sqlite3.connect(filename)
 
     def __del__(self):
         self.database.close()
 
+    def get_version(self):
+        """Read the version from the database"""
+        version = 0
+        cur = self.database.cursor()
+        try:
+            cur.execute("SELECT version FROM version_info")
+            v = cur.fetchone()
+            if None == v:
+                version = 0
+            else:
+                version = v[0]
+        except sqlite3.OperationalError:
+            version = 0
+        return version
+
     def create_database(self):
-        self.database.execute("CREATE TABLE IF NOT EXISTS players (name TEXT UNIQUE, token_id TEXT PRIMARY KEY, skill_mu REAL, skill_sigma REAL)")
-        self.database.execute("CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, player1 TEXT, player2 TEXT, player3 TEXT, player4 TEXT, team1_score INTEGER, team2_score INTEGER)")
+        self.database.execute("CREATE TABLE IF NOT EXISTS players (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, token_id TEXT UNIQUE, skill_mu REAL, skill_sigma REAL)")
+        self.database.execute("CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, player1_id INTEGER, player2_id INTEGER, player3_id INTEGER, player4_id INTEGER, team1_score INTEGER, team2_score INTEGER)")
+        self.database.execute("CREATE TABLE IF NOT EXISTS version_info (version INTEGER PRIMARY KEY)")
+        self.database.execute("INSERT INTO version_info (version) VALUES (?)", (self.get_current_version(),))
         self.database.commit()
         print("Created database")
 
     def add_new_player(self, name, token_id):
-        self.database.execute("INSERT INTO players VALUES(?, ?, ?, ?)", (name, token_id, trueskill.Rating().mu, trueskill.Rating().sigma))
+        self.database.execute("INSERT INTO players (name, token_id, skill_mu, skill_sigma) VALUES(?, ?, ?, ?)", (name, token_id, trueskill.Rating().mu, trueskill.Rating().sigma))
         self.database.commit()
         print("Added new player: " + name)
 
-    def get_player(self, token_id):
+    def get_player(self, player_id):
         cur = self.database.cursor()
-        cur.execute("SELECT * FROM players WHERE token_id=?", [token_id])
+        cur.execute("SELECT * FROM players WHERE id=?", [player_id])
         result = cur.fetchone()
         if result != None:
             return self.create_player(result)
@@ -42,7 +72,16 @@ class Database():
         else:
             return None
 
-    def get_admin(self, token_id):
+    def get_player_by_token(self, token_id):
+        cur = self.database.cursor()
+        cur.execute("SELECT * FROM players WHERE token_id=?", [token_id])
+        result = cur.fetchone()
+        if result != None:
+            return self.create_player(result)
+        else:
+            return None
+
+    def is_admin(self, token_id):
         cur = self.database.cursor()
         cur.execute("SELECT * FROM admins WHERE token_id=?", [token_id])
         result = cur.fetchone()
@@ -67,41 +106,46 @@ class Database():
 
     def update_player_skill(self, p):
         print("Update player:\n {0}".format(p))
-        self.database.execute("UPDATE players SET skill_mu=?, skill_sigma=? WHERE token_id=?", (p.rating.mu, p.rating.sigma, p.tokenID))
+        self.database.execute("UPDATE players SET skill_mu=?, skill_sigma=? WHERE id=?", (p.rating.mu, p.rating.sigma, p.id))
         self.database.commit()
 
     def create_player(self, db_result):
         p = player.Player()
-        p.name = db_result[0]
-        p.tokenID = db_result[1]
-        p.rating = trueskill.Rating(mu=db_result[2], sigma=db_result[3])
+        p.id = db_result[0]
+        p.name = db_result[1]
+        p.tokenID = db_result[2]
+        p.rating = trueskill.Rating(mu=db_result[3], sigma=db_result[4])
         return p
+
+    def retire_player(self, p):
+        """Remove the player from the list and remove the token so that another player can use it"""
+        pass
 
     def add_game(self, game):
         """Add a game to the games list"""
         cur = self.database.cursor()
-        insert_statement = "INSERT INTO games (player1, player2, player3, player4, team1_score, team2_score) VALUES (?,?,?,?,?,?)"
+        insert_statement = "INSERT INTO games (player1_id, player2_id, player3_id, player4_id, team1_score, team2_score) VALUES (?,?,?,?,?,?)"
         cur.execute(insert_statement, (
-            game.player1.tokenID,
-            game.player2.tokenID,
-            game.player3.tokenID,
-            game.player4.tokenID,
+            game.player1.id,
+            game.player2.id,
+            game.player3.id,
+            game.player4.id,
             game.scoreTeam1,
             game.scoreTeam2))
         self.database.commit()
 
     def update_game(self, game):
         print("Update game:\n {0}".format(game))
-        self.database.execute("UPDATE games SET player1=?, player2=?, player3=?, player4=?, team1_score=?, team2_score=? WHERE id=?", (game.player1.tokenID, game.player2.tokenID, game.player3.tokenID, game.player4.tokenID, game.scoreTeam1, game.scoreTeam2, game.id))
+        self.database.execute("UPDATE games SET player1_id=?, player2_id=?, player3_id=?, player4_id=?, team1_score=?, team2_score=? WHERE id=?", (game.player1.id, game.player2.id, game.player3.id, game.player4.id, game.scoreTeam1, game.scoreTeam2, game.id))
         self.database.commit()
 
     def get_games(self, number=None):
         """Get the last number games"""
         cur = self.database.cursor()
         if number is None:
-            select_statement = "SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score, id FROM games ORDER BY id DESC"
+            select_statement = "SELECT timestamp, player1_id, player2_id, player3_id, player4_id, team1_score, team2_score, id FROM games ORDER BY id DESC"
         else:
-            select_statement = "SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score, id FROM games ORDER BY id DESC LIMIT {n}".format(n=number)
+            select_statement = "SELECT timestamp, player1_id, player2_id, player3_id, player4_id, team1_score, team2_score, id FROM games ORDER BY id DESC LIMIT {n}".format(n=number)
 
         cur.execute(select_statement)
 
@@ -148,7 +192,7 @@ class Database():
     def get_game(self, game_id):
         """Get game with id"""
         cur = self.database.cursor()
-        cur.execute("SELECT timestamp, player1, player2, player3, player4, team1_score, team2_score FROM games WHERE id=?", [game_id])
+        cur.execute("SELECT timestamp, player1_id, player2_id, player3_id, player4_id, team1_score, team2_score FROM games WHERE id=?", [game_id])
         result = cur.fetchone()
 
         if result is None:

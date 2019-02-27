@@ -372,12 +372,54 @@
             size_hint_y: 0.3
             on_release: root.dismiss()
 
-<AdminPage@BoxLayout>:
+<AdminPage>:
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'vertical'
+        Button:
+            text: "Spieler ausblenden"
+            size_hint: 1, 0.1
+            on_release: root.hide_player()
+        Label:
+    Button:
+        text: "Zurück zur Spieleliste"
+        size_hint: 1, 0.1
+        on_release: app.switch_tab(1)
+
+<HidePlayerPopup>:
+    title: 'Spieler ausblenden'
+    auto_dismiss: False
+    size_hint: None, None
+    size: 500, 200
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, 1
+        Label:
+            size_hint_y: 0.4
+            text: 'Name des Spielers der ausgeblendet werden soll'
+        TextInput:
+            size_hint_y: 0.5
+            multiline: False
+            text: root.player_name
+        Label:
+        Button:
+            text: 'Ok'
+            size_hint_y: 0.4
+            on_release: root.hide_player()
+
+<ConfirmAdminPopup>:
+    title: 'Adminbestätigung'
+    auto_dismiss: False
+    size_hint: None, None
+    size: 500, 200
     BoxLayout:
         orientation: 'vertical'
         Label:
-            text: "Admin panel noch nicht implementiert"
+            text: 'Scanne Admin-Token um folgende Operation zu bestätigen:\n' + root.message
+            multiline: True
+            markup: True
+            focus: True
         Button:
-            text: "Zurück zur Spieleliste"
-            size_hint: 1, 0.1
-            on_release: app.switch_tab(1)
+            text: 'Abbrechen'
+            size_hint_y: 0.4
+            on_release: root.dismiss()

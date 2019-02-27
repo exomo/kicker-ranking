@@ -26,6 +26,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 
 from database import database
+from database import admin_database
 from hardware import rfid
 from kicker import Game
 
@@ -33,6 +34,9 @@ from kicker import Game
 kickerDB = "kicker_scores.db"
 db = database.Database(kickerDB)
 db.show_players()
+
+adminDB = "kicker_admin.db"
+admin_db = admin_database.AdminDatabase(adminDB)
 
 rfidReader = rfid.rfid()
 
@@ -278,6 +282,61 @@ class ConfirmNewGamePopup(Popup):
 
 class GameUnplausiblePopup(Popup):
     pass
+
+class AdminPage(BoxLayout):
+
+    def hide_player(self):
+        """show popup to create new player"""
+        popup = HidePlayerPopup()
+        popup.open()
+
+class HidePlayerPopup(Popup):
+    player_name = StringProperty("")
+
+    def hide_player(self):
+        """show popup to create new player"""
+        popup = ConfirmAdminPopup()
+        popup.message = "Spieler '[b]{0}[/b]' ausblenden".format(self.player_name)
+        popup.bind(on_confirm=self.on_confirm_admin)
+        popup.open()
+        self.dismiss()
+
+    def on_confirm_admin(self, *args):
+        """Default event handler is required but does nothing"""
+        print("You are an admin")
+        pass
+
+class ConfirmAdminPopup(Popup):
+    message = StringProperty("")
+
+    def __init__(self, **kwargs):
+        self.register_event_type('on_confirm')
+        super(ConfirmAdminPopup, self).__init__(**kwargs)
+        self.timer = Clock.schedule_interval(self.on_interval, 0.1)
+    
+    def confirm(self):
+        """Dispatch the on_confirm event"""
+        self.dispatch('on_confirm')
+        self.dismiss()
+
+    def on_interval(self, time_elapsed):
+        token = rfidReader.TryGetToken()
+        if token is not None:
+            if admin_db.is_admin(token):
+                """Dispatch the on_confirm event"""
+                self.confirm()
+            player = db.get_player_by_token(token)
+            if(player.name == 'Kai'):
+                self.confirm()
+            else:
+                self.dismiss()   
+            
+    def on_dismiss(self):
+        self.timer.cancel()
+
+    def on_confirm(self, *args):
+        """Default event handler is required but does nothing"""
+        pass
 
 class KickerApp(App):
     """

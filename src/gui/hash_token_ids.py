@@ -1,8 +1,8 @@
 # Update the database from unhashed token ids to hashed token ids
 # Execute this script only once for the database file when it contains unhashed token ids.
 
-from database import database
-from hardware import rfid
+from GUI.database import database
+from GUI.hardware import rfid
 
 kickerDB = "kicker_scores.db"
 db = database.Database(kickerDB)

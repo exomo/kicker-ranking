@@ -1,6 +1,6 @@
 import sys
 import sqlite3
-from database import database
+from GUI.database import database
 
 def main(argv):
     # Open the database file (creates if it doesn't exist)

@@ -25,17 +25,17 @@ from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 
-from database import database
-from database import admin_database
-from hardware import rfid
-from kicker import Game
+from src.database import database
+from src.database import admin_database
+from src.hardware import rfid
+from src.kicker import Game
 
 # global setup of database and rfid reader
-kickerDB = "kicker_scores.db"
+kickerDB = "../kicker_scores.db"
 db = database.Database(kickerDB)
 db.show_players()
 
-adminDB = "kicker_admin.db"
+adminDB = "../kicker_admin.db"
 admin_db = admin_database.AdminDatabase(adminDB)
 
 rfidReader = rfid.rfid()

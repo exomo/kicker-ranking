@@ -42,15 +42,15 @@ class Database():
         return version
 
     def create_database(self):
-        self.database.execute("CREATE TABLE IF NOT EXISTS players (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, token_id TEXT UNIQUE, skill_mu REAL, skill_sigma REAL)")
+        self.database.execute("CREATE TABLE IF NOT EXISTS players (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, token_id TEXT UNIQUE, skill_mu REAL, skill_sigma REAL, isAdmin BIT, isHidden BIT)")
         self.database.execute("CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, player1_id INTEGER, player2_id INTEGER, player3_id INTEGER, player4_id INTEGER, team1_score INTEGER, team2_score INTEGER)")
         self.database.execute("CREATE TABLE IF NOT EXISTS version_info (version INTEGER PRIMARY KEY)")
         self.database.execute("INSERT INTO version_info (version) VALUES (?)", (self.get_current_version(),))
         self.database.commit()
         print("Created database")
 
-    def add_new_player(self, name, token_id):
-        self.database.execute("INSERT INTO players (name, token_id, skill_mu, skill_sigma) VALUES(?, ?, ?, ?)", (name, token_id, trueskill.Rating().mu, trueskill.Rating().sigma))
+    def add_new_player(self, name, token_id, isAdmin, isHidden):
+        self.database.execute("INSERT INTO players (name, token_id, skill_mu, skill_sigma, isAdmin, isHidden) VALUES(?, ?, ?, ?, ?, ?)", (name, token_id, trueskill.Rating().mu, trueskill.Rating().sigma), isAdmin, isHidden)
         self.database.commit()
         print("Added new player: " + name)
 
@@ -83,7 +83,7 @@ class Database():
 
     def is_admin(self, token_id):
         cur = self.database.cursor()
-        cur.execute("SELECT * FROM admins WHERE token_id=?", [token_id])
+        cur.execute("SELECT * FROM players WHERE token_id:=token_id AND isAdmin:=bit", {"token_id":token_id, "bit":1})
         result = cur.fetchone()
         if result != None:
             return True

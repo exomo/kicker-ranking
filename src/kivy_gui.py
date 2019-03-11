@@ -25,17 +25,17 @@ from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 
-from src.database import database
-from src.database import admin_database
-from src.hardware import rfid
-from src.kicker import Game
+from database import database
+from database import admin_database
+from hardware import rfid
+from kicker import Game
 
 # global setup of database and rfid reader
-kickerDB = "../kicker_scores.db"
+kickerDB = "kicker_scores.db"
 db = database.Database(kickerDB)
 db.show_players()
 
-adminDB = "../kicker_admin.db"
+adminDB = "kicker_admin.db"
 admin_db = admin_database.AdminDatabase(adminDB)
 
 rfidReader = rfid.rfid()
@@ -94,7 +94,7 @@ class NewPlayerPopup(Popup):
     scan_token_label_text = StringProperty()
     scan_token_label_error_text = StringProperty()
     scan_token_label_success_text = StringProperty()
-    display_image = StringProperty('empty.png')
+    display_image = StringProperty('gui/empty.png')
 
     def __init__(self, ranking_list, **kwargs):
         super(NewPlayerPopup, self).__init__(**kwargs)
@@ -106,7 +106,7 @@ class NewPlayerPopup(Popup):
         if token:
             # Check if token is already registered
             if db.get_player(token) is None:
-                self.display_image = 'check.png'
+                self.display_image = 'gui/check.png'
                 self.scan_token_label_text = self.scan_token_label_success_text
                 self.token_id = token
                 self.timer.cancel() 
@@ -114,7 +114,7 @@ class NewPlayerPopup(Popup):
                 self.player_name.focus = True
                 self.validate_input()
             else:
-                self.display_image = 'error.png'
+                self.display_image = 'gui/error.png'
                 self.scan_token_label_text = self.scan_token_label_error_text
                 print("Player already exists! Please scan another token.")     
 
@@ -351,7 +351,7 @@ class KickerApp(App):
         #   be the directory above GUI, but we want the kv to be inside GUI
         # - in windows the automatic load would also happen from inside GUI if the kv file name was
         #   like the App (Kicker.kv), the file must have a different name to prevent the auto load
-        with open("GUI/KickerUi.kv", encoding='utf8') as kvFile:
+        with open("src/gui/KickerUi.kv", encoding='utf8') as kvFile:
             Builder.load_string(kvFile.read())
         self.title = "~ ITK Kicker Rangliste ~"
         self.tab_widget = KickerWidget()

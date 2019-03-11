@@ -12,9 +12,11 @@ class Player():
         self._name = u""
         self._tokenID = 0
         self._rating = trueskill.Rating()
+        self._isAdmin = 0
+        self._isHidden = 0
 
     def __repr__(self):
-        return "Player\n -Name: {0}\n -Token ID: {1}\n -Score: mu {2}, sigma {3}".format(self.name, self.tokenID, self.rating.mu, self.rating.sigma)
+        return "Player\n -Name: {0}\n -Token ID: {1}\n -Score: mu {2}, sigma {3}\n -Admin: {4}\n -Pensioniert: {5}\n".format(self.name, self.tokenID, self.rating.mu, self.rating.sigma, self.isAdmin, self.isHidden)
 
     # setter-, getter-methods
     # -------------------------------------------------------------------------------------------------------------------------------------
@@ -42,6 +44,18 @@ class Player():
     def get_rating(self):
         return self._rating
 
+    def set_isAdmin(self, isAdmin):
+        self._isAdmin = isAdmin
+
+    def get_isAdmin(self):
+        return self._isAdmin
+
+    def set_isHidden(self, isHidden):
+        self._isHidden = isHidden
+
+    def get_isHidden(self):
+        return self._isHidden
+
     # -------------------------------------------------------------------------------------------------------------------------------------
     # properties
     # -------------------------------------------------------------------------------------------------------------------------------------
@@ -49,6 +63,8 @@ class Player():
     name = property(get_name, set_name)
     tokenID = property(get_tokenID, set_tokenID)
     rating = property(get_rating, set_rating)
+    isAdmin = property(get_isAdmin, set_isAdmin)
+    isHidden = property(get_isHidden, set_isHidden)
     # -------------------------------------------------------------------------------------------------------------------------------------
 
     def show_player(self):

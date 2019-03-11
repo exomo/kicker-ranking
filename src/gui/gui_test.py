@@ -331,7 +331,7 @@ class NewGamePage(tk.Frame):
         labelPlayer2 = tk.Label(self, textvariable=self.player2Name)
         labelPlayer2.grid(row=4, column=0, columnspan=3)
 
-        image = Image.open("GUI/Kicker_top.jpg")
+        image = Image.open("src/gui/Kicker_top.png")
         photo = ImageTk.PhotoImage(image)
 
         topview = tk.Label(self, image=photo)

@@ -50,7 +50,7 @@ class Database():
         print("Created database")
 
     def add_new_player(self, name, token_id, isAdmin, isHidden):
-        self.database.execute("INSERT INTO players (name, token_id, skill_mu, skill_sigma, isAdmin, isHidden) VALUES(?, ?, ?, ?, ?, ?)", (name, token_id, trueskill.Rating().mu, trueskill.Rating().sigma), isAdmin, isHidden)
+        self.database.execute("INSERT INTO players (name, token_id, skill_mu, skill_sigma, isAdmin, isHidden) VALUES(?, ?, ?, ?, ?, ?)", (name, token_id, trueskill.Rating().mu, trueskill.Rating().sigma, isAdmin, isHidden))
         self.database.commit()
         print("Added new player: " + name)
 
@@ -83,16 +83,26 @@ class Database():
 
     def is_admin(self, token_id):
         cur = self.database.cursor()
-        cur.execute("SELECT * FROM players WHERE token_id:=token_id AND isAdmin:=bit", {"token_id":token_id, "bit":1})
+        cur.execute("SELECT * FROM players WHERE token_id=? AND isAdmin=?", (token_id, 1))
         result = cur.fetchone()
         if result != None:
             return True
         else:
             return False
 
+    def set_asAdmin(self, p):
+        """Admins can set other players as Admin"""
+        cur = self.database.cursor()
+        cur.execute("UPDATE players SET isAdmin=1 WHERE id=?", (p.id))
+
     def get_all_players(self):
         cur = self.database.cursor()
         cur.execute("SELECT * FROM players ORDER BY skill_mu DESC, skill_sigma ASC")
+        return [self.create_player(p) for p in cur.fetchall()]
+    
+    def get_active_players(self):
+        cur = self.database.cursor()
+        cur.execute("SELECT * FROM players WHERE isHidden=0 ORDER BY skill_mu DESC, skill_sigma ASC")
         return [self.create_player(p) for p in cur.fetchall()]
 
     def show_players(self):
@@ -115,10 +125,18 @@ class Database():
         p.name = db_result[1]
         p.tokenID = db_result[2]
         p.rating = trueskill.Rating(mu=db_result[3], sigma=db_result[4])
+        p.isAdmin = db_result[5]
+        p.isHidden = db_result[6]
         return p
 
     def retire_player(self, p):
-        """Remove the player from the list and remove the token so that another player can use it"""
+        """Players should be rather updated by status and later removed from the database based on their token and isHidden value"""
+        print("Retire player:\n {0}".format(p))
+        self.database.execute("UPDATE players SET isHidden=?, token_id=?, isAdmin=? WHERE id=?", (1, "NULL", 0, p.id))
+        self.database.commit()
+
+    def remove_retired_players(self, p):
+        """Remove players with token_id=0 and isHidden=1"""
         pass
 
     def add_game(self, game):

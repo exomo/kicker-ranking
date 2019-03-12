@@ -35,9 +35,6 @@ kickerDB = "kicker_scores.db"
 db = database.Database(kickerDB)
 db.show_players()
 
-adminDB = "kicker_admin.db"
-admin_db = admin_database.AdminDatabase(adminDB)
-
 rfidReader = rfid.rfid()
 
 # Parameters for the trueskill ranking
@@ -77,7 +74,7 @@ class RankingList(RecycleView):
         self.refresh()
 
     def refresh(self):
-        rank = db.get_all_players()
+        rank = db.get_active_players()
         self.data = [
             {
                 'name' : player.name,
@@ -90,7 +87,7 @@ class RankingList(RecycleView):
 class NewPlayerPopup(Popup):
     enable_ok = BooleanProperty()
     player_name = ObjectProperty()
-    token_id = StringProperty() 
+    token_id = StringProperty()
     scan_token_label_text = StringProperty()
     scan_token_label_error_text = StringProperty()
     scan_token_label_success_text = StringProperty()
@@ -119,7 +116,7 @@ class NewPlayerPopup(Popup):
                 print("Player already exists! Please scan another token.")     
 
     def on_ok(self):
-        db.add_new_player(self.player_name.text, self.token_id)
+        db.add_new_player(self.player_name.text, self.token_id, 0, 0)
         self.ranking_list.refresh()
         self.dismiss()
 
@@ -284,59 +281,58 @@ class GameUnplausiblePopup(Popup):
     pass
 
 class AdminPage(BoxLayout):
+    ranking_list = ObjectProperty()
 
     def hide_player(self):
-        """show popup to create new player"""
-        popup = HidePlayerPopup()
+        """show popup to hide a player"""
+        popup = HidePlayerPopup(ranking_list=self.ranking_list)
         popup.open()
 
 class HidePlayerPopup(Popup):
-    player_name = StringProperty("")
+    enable_ok = BooleanProperty()
+    player_name = ObjectProperty()
+    scan_token_label_text = StringProperty()
+    scan_token_label_error_text = StringProperty()
+    scan_token_label_success_text = StringProperty()
+    display_image = StringProperty('gui/empty.png')
 
-    def hide_player(self):
-        """show popup to create new player"""
-        popup = ConfirmAdminPopup()
-        popup.message = "Spieler '[b]{0}[/b]' ausblenden".format(self.player_name)
-        popup.bind(on_confirm=self.on_confirm_admin)
-        popup.open()
-        self.dismiss()
-
-    def on_confirm_admin(self, *args):
-        """Default event handler is required but does nothing"""
-        print("You are an admin")
-        pass
-
-class ConfirmAdminPopup(Popup):
-    message = StringProperty("")
-
-    def __init__(self, **kwargs):
-        self.register_event_type('on_confirm')
-        super(ConfirmAdminPopup, self).__init__(**kwargs)
+    def __init__(self, ranking_list, **kwargs):
+        super(HidePlayerPopup, self).__init__(**kwargs)
+        self.ranking_list = ranking_list
         self.timer = Clock.schedule_interval(self.on_interval, 0.1)
-    
-    def confirm(self):
-        """Dispatch the on_confirm event"""
-        self.dispatch('on_confirm')
-        self.dismiss()
 
     def on_interval(self, time_elapsed):
-        token = rfidReader.TryGetToken()
+        token = rfidReader.getAdminToken()
         if token is not None:
-            if admin_db.is_admin(token):
-                """Dispatch the on_confirm event"""
-                self.confirm()
-            player = db.get_player_by_token(token)
-            if(player.name == 'Kai'):
-                self.confirm()
+            if db.is_admin(token):
+                print("You are an admin.")
+                self.display_image = 'gui/check.png'
+                self.scan_token_label_text = self.scan_token_label_success_text
+                self.timer.cancel()
+                self.player_name.disabled = False
+                self.player_name.focus = True
+                self.validate_input()
             else:
-                self.dismiss()   
-            
+                print("You are not an admin!")
+
+    def on_ok(self):
+        db.retire_player(db.get_player_by_name(self.player_name.text))
+        self.ranking_list.refresh()
+        self.dismiss()
+
     def on_dismiss(self):
         self.timer.cancel()
 
-    def on_confirm(self, *args):
-        """Default event handler is required but does nothing"""
-        pass
+    def validate_input(self):
+        print(self.player_name.text)
+        if self.player_name.text:
+            player = db.get_player_by_name(self.player_name.text)
+            if player is None:
+                self.enable_ok = False
+            else:
+                self.enable_ok = True
+        else:
+            self.enable_ok = False
 
 class KickerApp(App):
     """

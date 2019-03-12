@@ -389,23 +389,48 @@
 <HidePlayerPopup>:
     title: 'Spieler ausblenden'
     auto_dismiss: False
+    enable_ok: True
     size_hint: None, None
-    size: 500, 200
+    player_name: player_name
+    size: 400, 400
+    scan_token_label_text: 'Bitte Token einscannen'
+    scan_token_label_success_text: '[color=22DD22][b]Token erfolgreich gelesen.[/b][/color]\nBitte Namen eingeben\nund bestätigen.'
+    scan_token_label_error_text: '[color=FF0000][b]Spieler existiert nicht.[/b][/color]'
+    name_error_text: '[color=22DD22][b]Token erfolgreich gelesen.[/b][/color]\nBitte Namen eingeben\nund bestätigen.\n[color=FF0000][b]Der Name ist bereits vergeben.[/b][/color]'
+  
     BoxLayout:
         orientation: 'vertical'
-        size_hint: 1, 1
-        Label:
-            size_hint_y: 0.4
-            text: 'Name des Spielers der ausgeblendet werden soll'
-        TextInput:
+        Image:
+            source: root.display_image
             size_hint_y: 0.5
-            multiline: False
-            text: root.player_name
         Label:
-        Button:
-            text: 'Ok'
-            size_hint_y: 0.4
-            on_release: root.hide_player()
+            text: root.scan_token_label_text
+            markup: True
+            size_hint_y: 0.2
+        Label:
+            text: 'Name:'
+            size_hint: 1, .1
+        TextInput:
+            id: player_name
+            multiline: False
+            size_hint: 1, .1
+            focus: True
+            text_validate_unfocus: False
+            hint_text: 'Spielername eingeben'
+            on_text: root.validate_input()
+            on_text_validate: if root.enable_ok: root.on_ok()
+            disabled: True
+            # on_focus: root.on_focus(*args)
+        BoxLayout:
+            size_hint_y: 0.1
+            orientation: 'horizontal'
+            Button:
+                text: 'Abbrechen'
+                on_release: root.dismiss()
+            Button:
+                text: 'OK'
+                disabled: not root.enable_ok
+                on_release: root.on_ok()
 
 <ConfirmAdminPopup>:
     title: 'Adminbestätigung'

@@ -92,7 +92,6 @@ class Database():
 
     def set_as_admin(self, p):
         """tags a player as an admin"""
-        """this should be called from a function that checks if the caller is an admin"""
         self.database.execute("UPDATE players SET is_admin=? WHERE id=?", (1, p.id))
         self.database.commit()
 
@@ -106,6 +105,11 @@ class Database():
         cur.execute("SELECT * FROM players WHERE is_hidden=0 ORDER BY skill_mu DESC, skill_sigma ASC")
         return [self.create_player(p) for p in cur.fetchall()]
 
+    def get_admin_players(self):
+        cur = self.database.cursor()
+        cur.execute("SELECT * FROM players WHERE is_admin=1 ORDER BY skill_mu DESC, skill_sigma ASC")
+        return [self.create_player(p) for p in cur.fetchall()]
+
     def show_players(self):
         print("List of all players")
         print("="*30)
@@ -116,7 +120,7 @@ class Database():
         print("="*30+"\n")
 
     def update_player_skill(self, p):
-        print("Update player:\n {0}".format(p))
+        print("Update player:\n{0}".format(p))
         self.database.execute("UPDATE players SET skill_mu=?, skill_sigma=? WHERE id=?", (p.rating.mu, p.rating.sigma, p.id))
         self.database.commit()
 
@@ -132,7 +136,7 @@ class Database():
 
     def retire_player(self, p):
         """Players should be rather updated by status and later removed from the database based on their token and is_hidden value"""
-        print("Retire player:\n {0}".format(p))
+        print("Retire player:\n{0}".format(p))
         self.database.execute("UPDATE players SET is_hidden=?, token_id=?, is_admin=? WHERE id=?", (1, None, 0, p.id))
         self.database.commit()
 
@@ -246,7 +250,7 @@ class Database():
         return game
 
     def delete_game(self, game_id):
-        print("Delete game:\n {0}".format(game_id))
+        print("Delete game:\n{0}".format(game_id))
         self.database.execute("DELETE FROM games WHERE id=?", [game_id])
         self.database.commit()
 

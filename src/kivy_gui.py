@@ -83,6 +83,20 @@ class RankingList(RecycleView):
             }
             for i, player in enumerate(rank)]
 
+class AdminList(RecycleView):
+    def __init__(self, **kwargs):
+        super(AdminList, self).__init__(**kwargs)
+        self.refresh()
+
+    def refresh(self):
+        rank = db.get_admin_players()
+        self.data = [
+            {
+                'name' : player.name,
+                'rank' : i+1,
+            }
+            for i, player in enumerate(rank)]
+
 class NewPlayerPopup(Popup):
     enable_ok = BooleanProperty()
     player_name = ObjectProperty()
@@ -281,12 +295,19 @@ class GameUnplausiblePopup(Popup):
 
 class AdminPage(BoxLayout):
     player_list = ObjectProperty()
+    admin_list = ObjectProperty()
 
     def hide_player(self):
         """show popup to hide a player"""
         popup = HidePlayerPopup(player_list=self.player_list)
         popup.open()
         self.player_list.refresh()
+
+    def admin_player(self):
+        """show popup to set a player as an admin"""
+        popup = AdminPlayerPopup(admin_list=self.admin_list)
+        popup.open()
+        self.admin_list.refresh()
 
 class HidePlayerPopup(Popup):
     enable_ok = BooleanProperty()
@@ -305,7 +326,7 @@ class HidePlayerPopup(Popup):
         token = rfidReader.getAdminToken()
         if token is not None:
             if db.is_admin(token):
-                print("You are an admin.")
+                #print("You are an admin.")
                 self.display_image = 'gui/check.png'
                 self.scan_token_label_text = self.scan_token_label_success_text
                 self.timer.cancel()
@@ -313,7 +334,8 @@ class HidePlayerPopup(Popup):
                 self.player_name.focus = True
                 self.validate_input()
             else:
-                print("You are not an admin!")
+                self.scan_token_label_text = self.scan_token_label_error_text
+                #print("You are not an admin!")
 
     def on_ok(self):
         db.retire_player(db.get_player_by_name(self.player_name.text))
@@ -324,7 +346,7 @@ class HidePlayerPopup(Popup):
         self.timer.cancel()
 
     def validate_input(self):
-        print(self.player_name.text)
+        #print(self.player_name.text)
         if self.player_name.text:
             player = db.get_player_by_name(self.player_name.text)
             if player is None:
@@ -333,6 +355,54 @@ class HidePlayerPopup(Popup):
                 self.enable_ok = True
         else:
             self.enable_ok = False
+
+class AdminPlayerPopup(Popup):
+    enable_ok = BooleanProperty()
+    player_name = ObjectProperty()
+    scan_token_label_text = StringProperty()
+    scan_token_label_error_text = StringProperty()
+    scan_token_label_success_text = StringProperty()
+    display_image = StringProperty('gui/empty.png')
+
+    def __init__(self, admin_list, **kwargs):
+        super(AdminPlayerPopup, self).__init__(**kwargs)
+        self.admin_list = admin_list
+        self.timer = Clock.schedule_interval(self.on_interval, 0.1)
+
+    def on_interval(self, time_elapsed):
+        token = rfidReader.getAdminToken()
+        if token is not None:
+            if db.is_admin(token):
+                #print("You are an admin.")
+                self.display_image = 'gui/check.png'
+                self.scan_token_label_text = self.scan_token_label_success_text
+                self.timer.cancel()
+                self.player_name.disabled = False
+                self.player_name.focus = True
+                self.validate_input()
+            else:
+                self.scan_token_label_text = self.scan_token_label_error_text
+                #print("You are not an admin!")
+
+    def on_ok(self):
+        db.set_as_admin(db.get_player_by_name(self.player_name.text))
+        self.admin_list.refresh()
+        self.dismiss()
+
+    def on_dismiss(self):
+        self.timer.cancel()
+
+    def validate_input(self):
+        #print(self.player_name.text)
+        if self.player_name.text:
+            player = db.get_player_by_name(self.player_name.text)
+            if player is None:
+                self.enable_ok = False
+            else:
+                self.enable_ok = True
+        else:
+            self.enable_ok = False
+
 
 class KickerApp(App):
     """

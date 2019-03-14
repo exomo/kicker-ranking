@@ -205,7 +205,7 @@ class NewGamePopup(Popup):
     def on_interval(self, time_elapsed):
         token = rfidReader.TryGetToken()
         if token is not None:
-            player = db.get_player(token)
+            player = db.get_player_by_token(token)
             if player is not None and not player.tokenID in [p.tokenID for p in self.players]:
                 self.players.append(player)
                 player_number = len(self.players)

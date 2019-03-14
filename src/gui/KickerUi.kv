@@ -16,6 +16,7 @@
     TabbedPanelItem:
         text: "Admin"
         AdminPage:
+            player_list: player_page.ranking_list
 
 <PlayerPage>:
     orientation: 'vertical'
@@ -396,8 +397,7 @@
     scan_token_label_text: 'Bitte Token einscannen'
     scan_token_label_success_text: '[color=22DD22][b]Token erfolgreich gelesen.[/b][/color]\nBitte Namen eingeben\nund bestätigen.'
     scan_token_label_error_text: '[color=FF0000][b]Spieler existiert nicht.[/b][/color]'
-    name_error_text: '[color=22DD22][b]Token erfolgreich gelesen.[/b][/color]\nBitte Namen eingeben\nund bestätigen.\n[color=FF0000][b]Der Name ist bereits vergeben.[/b][/color]'
-  
+ 
     BoxLayout:
         orientation: 'vertical'
         Image:
@@ -431,20 +431,3 @@
                 text: 'OK'
                 disabled: not root.enable_ok
                 on_release: root.on_ok()
-
-<ConfirmAdminPopup>:
-    title: 'Adminbestätigung'
-    auto_dismiss: False
-    size_hint: None, None
-    size: 500, 200
-    BoxLayout:
-        orientation: 'vertical'
-        Label:
-            text: 'Scanne Admin-Token um folgende Operation zu bestätigen:\n' + root.message
-            multiline: True
-            markup: True
-            focus: True
-        Button:
-            text: 'Abbrechen'
-            size_hint_y: 0.4
-            on_release: root.dismiss()

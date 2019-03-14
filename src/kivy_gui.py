@@ -26,7 +26,6 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 
 from database import database
-from database import admin_database
 from hardware import rfid
 from kicker import Game
 
@@ -102,7 +101,7 @@ class NewPlayerPopup(Popup):
         token = rfidReader.TryGetToken()
         if token:
             # Check if token is already registered
-            if db.get_player(token) is None:
+            if db.get_player_by_token(token) is None:
                 self.display_image = 'gui/check.png'
                 self.scan_token_label_text = self.scan_token_label_success_text
                 self.token_id = token
@@ -281,12 +280,13 @@ class GameUnplausiblePopup(Popup):
     pass
 
 class AdminPage(BoxLayout):
-    ranking_list = ObjectProperty()
+    player_list = ObjectProperty()
 
     def hide_player(self):
         """show popup to hide a player"""
-        popup = HidePlayerPopup(ranking_list=self.ranking_list)
+        popup = HidePlayerPopup(player_list=self.player_list)
         popup.open()
+        self.player_list.refresh()
 
 class HidePlayerPopup(Popup):
     enable_ok = BooleanProperty()
@@ -296,9 +296,9 @@ class HidePlayerPopup(Popup):
     scan_token_label_success_text = StringProperty()
     display_image = StringProperty('gui/empty.png')
 
-    def __init__(self, ranking_list, **kwargs):
+    def __init__(self, player_list, **kwargs):
         super(HidePlayerPopup, self).__init__(**kwargs)
-        self.ranking_list = ranking_list
+        self.player_list = player_list
         self.timer = Clock.schedule_interval(self.on_interval, 0.1)
 
     def on_interval(self, time_elapsed):
@@ -317,7 +317,7 @@ class HidePlayerPopup(Popup):
 
     def on_ok(self):
         db.retire_player(db.get_player_by_name(self.player_name.text))
-        self.ranking_list.refresh()
+        self.player_list.refresh()
         self.dismiss()
 
     def on_dismiss(self):

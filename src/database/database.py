@@ -42,15 +42,15 @@ class Database():
         return version
 
     def create_database(self):
-        self.database.execute("CREATE TABLE IF NOT EXISTS players (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, token_id TEXT UNIQUE, skill_mu REAL, skill_sigma REAL, isAdmin BIT, isHidden BIT)")
+        self.database.execute("CREATE TABLE IF NOT EXISTS players (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, token_id TEXT UNIQUE, skill_mu REAL, skill_sigma REAL, is_admin BIT, is_hidden BIT)")
         self.database.execute("CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, player1_id INTEGER, player2_id INTEGER, player3_id INTEGER, player4_id INTEGER, team1_score INTEGER, team2_score INTEGER)")
         self.database.execute("CREATE TABLE IF NOT EXISTS version_info (version INTEGER PRIMARY KEY)")
         self.database.execute("INSERT INTO version_info (version) VALUES (?)", (self.get_current_version(),))
         self.database.commit()
         print("Created database")
 
-    def add_new_player(self, name, token_id, isAdmin, isHidden):
-        self.database.execute("INSERT INTO players (name, token_id, skill_mu, skill_sigma, isAdmin, isHidden) VALUES(?, ?, ?, ?, ?, ?)", (name, token_id, trueskill.Rating().mu, trueskill.Rating().sigma, isAdmin, isHidden))
+    def add_new_player(self, name, token_id, is_admin, is_hidden):
+        self.database.execute("INSERT INTO players (name, token_id, skill_mu, skill_sigma, is_admin, is_hidden) VALUES(?, ?, ?, ?, ?, ?)", (name, token_id, trueskill.Rating().mu, trueskill.Rating().sigma, is_admin, is_hidden))
         self.database.commit()
         print("Added new player: " + name)
 
@@ -83,17 +83,18 @@ class Database():
 
     def is_admin(self, token_id):
         cur = self.database.cursor()
-        cur.execute("SELECT * FROM players WHERE token_id=? AND isAdmin=?", (token_id, 1))
+        cur.execute("SELECT * FROM players WHERE token_id=? AND is_admin=?", (token_id, 1))
         result = cur.fetchone()
         if result != None:
             return True
         else:
             return False
 
-    def set_asAdmin(self, p):
-        """Admins can set other players as Admin"""
-        cur = self.database.cursor()
-        cur.execute("UPDATE players SET isAdmin=1 WHERE id=?", (p.id))
+    def set_as_admin(self, p):
+        """tags a player as an admin"""
+        """this should be called from a function that checks if the caller is an admin"""
+        self.database.execute("UPDATE players SET is_admin=? WHERE id=?", (1, p.id))
+        self.database.commit()
 
     def get_all_players(self):
         cur = self.database.cursor()
@@ -102,7 +103,7 @@ class Database():
     
     def get_active_players(self):
         cur = self.database.cursor()
-        cur.execute("SELECT * FROM players WHERE isHidden=0 ORDER BY skill_mu DESC, skill_sigma ASC")
+        cur.execute("SELECT * FROM players WHERE is_hidden=0 ORDER BY skill_mu DESC, skill_sigma ASC")
         return [self.create_player(p) for p in cur.fetchall()]
 
     def show_players(self):
@@ -125,18 +126,18 @@ class Database():
         p.name = db_result[1]
         p.tokenID = db_result[2]
         p.rating = trueskill.Rating(mu=db_result[3], sigma=db_result[4])
-        p.isAdmin = db_result[5]
-        p.isHidden = db_result[6]
+        p.is_admin = db_result[5]
+        p.is_hidden = db_result[6]
         return p
 
     def retire_player(self, p):
-        """Players should be rather updated by status and later removed from the database based on their token and isHidden value"""
+        """Players should be rather updated by status and later removed from the database based on their token and is_hidden value"""
         print("Retire player:\n {0}".format(p))
-        self.database.execute("UPDATE players SET isHidden=?, token_id=?, isAdmin=? WHERE id=?", (1, "NULL", 0, p.id))
+        self.database.execute("UPDATE players SET is_hidden=?, token_id=?, is_admin=? WHERE id=?", (1, None, 0, p.id))
         self.database.commit()
 
     def remove_retired_players(self, p):
-        """Remove players with token_id=0 and isHidden=1"""
+        """Remove players with token_id=0 and is_hidden=1"""
         pass
 
     def add_game(self, game):

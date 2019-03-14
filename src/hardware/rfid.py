@@ -16,6 +16,10 @@ try:
         except:
             uid = None
         return uid
+    
+    def getAdminToken():
+        return getToken()
+
 except:
     global fakeId
     global request_count
@@ -31,6 +35,9 @@ except:
             return uid
         else:
             request_count += 1
+    
+    def getAdminToken():
+        return str(42424242424242)
 
 class rfid():
     """
@@ -49,5 +56,5 @@ class rfid():
         return digest
 
     def getAdminToken(self):
-        uid = str(42424242424242)
+        uid = getAdminToken()
         return self.Hash(uid) if uid else None

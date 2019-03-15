@@ -1,6 +1,7 @@
 #!/bin/bash
 
-cp kicker_scores.db kicker_scores.db.bkp
+mkdir -p backup
+cp kicker_scores.db backup/$(date -Iseconds)_kicker_scores.db.bkp
+
 git pull
-cp kicker_scores.db.bkp kicker_scores.db
-python3 GUI/gui_test.py
+python3 src/database/update_database.py

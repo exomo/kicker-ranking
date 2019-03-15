@@ -1,12 +1,7 @@
-""" 
-Main program for the kivy based kicker ranking gui.
-"""
+import os
 
-import time
-import sys
-
-import trueskill
-from trueskill import Rating
+import config
+from config import db, rfidReader
 
 import kivy
 kivy.require('1.10.0')
@@ -25,31 +20,7 @@ from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 
-from database import database
-from hardware import rfid
-from kicker import Game
-
-# global setup of database and rfid reader
-kickerDB = "kicker_scores.db"
-db = database.Database(kickerDB)
-db.show_players()
-
-rfidReader = rfid.rfid()
-
-# Parameters for the trueskill ranking
-
-#: Default initial mean of ratings.
-MU = 30.
-#: Default initial standard deviation of ratings.
-SIGMA = MU / 3
-#: Default distance that guarantees about 76% chance of winning.
-BETA = SIGMA / 2
-#: Default dynamic factor.
-TAU = SIGMA / 100
-#: Default draw probability of the game.
-DRAW_PROBABILITY = .0
-#: A basis to check reliability of the result.
-DELTA = 0.0001
+# from gui.kickerwidget import KickerWidget
 
 class KickerWidget(TabbedPanel):
     """Main widget of GUI, specifies basic layout."""
@@ -119,14 +90,14 @@ class NewPlayerPopup(Popup):
                 self.display_image = 'gui/check.png'
                 self.scan_token_label_text = self.scan_token_label_success_text
                 self.token_id = token
-                self.timer.cancel() 
+                self.timer.cancel()
                 self.player_name.disabled = False
                 self.player_name.focus = True
                 self.validate_input()
             else:
                 self.display_image = 'gui/error.png'
                 self.scan_token_label_text = self.scan_token_label_error_text
-                print("Player already exists! Please scan another token.")     
+                print("Player already exists! Please scan another token.")
 
     def on_ok(self):
         db.add_new_player(self.player_name.text, self.token_id, 0, 0)
@@ -191,8 +162,8 @@ class GameList(RecycleView):
 
 class NewGamePopup(Popup):
     """Popup to enter a new game"""
-    team1 = ObjectProperty() 
-    team2 = ObjectProperty() 
+    team1 = ObjectProperty()
+    team2 = ObjectProperty()
 
     def __init__(self, game_list, player_list, **kwargs):
         super(NewGamePopup, self).__init__(**kwargs)
@@ -232,7 +203,7 @@ class NewGamePopup(Popup):
             (result1 != result2):
 
             popup = ConfirmNewGamePopup(
-                team1_score=result1, 
+                team1_score=result1,
                 team2_score=result2,
                 player1=self.team1.player1,
                 player2=self.team1.player2,
@@ -247,7 +218,7 @@ class NewGamePopup(Popup):
 
     def on_dismiss(self):
         self.timer.cancel()
-    
+
     def on_confirm(self, sender):
         """bound to the on_confirm event of the confirmation dialog,
            stores the game into the database"""
@@ -411,13 +382,14 @@ class KickerApp(App):
     def build(self):
         # workaround for some issues with auto loading the kv file
         # - on windows, the file is read with wrong encoding, this is solved by loading the file
-        #   explicitly and passing the correctly read file contents to the builder instead of 
+        #   explicitly and passing the correctly read file contents to the builder instead of
         #   relying on the automatic loading of kv files
         # - on linux the kv file is only auto-loaded if it is in the current directory, which would
         #   be the directory above GUI, but we want the kv to be inside GUI
         # - in windows the automatic load would also happen from inside GUI if the kv file name was
         #   like the App (Kicker.kv), the file must have a different name to prevent the auto load
-        with open("src/gui/KickerUi.kv", encoding='utf8') as kvFile:
+        kv_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'KickerUi.kv')
+        with open(kv_filename, encoding='utf8') as kvFile:
             Builder.load_string(kvFile.read())
         self.title = "~ ITK Kicker Rangliste ~"
         self.tab_widget = KickerWidget()
@@ -427,12 +399,3 @@ class KickerApp(App):
         self.tab_widget.switch_to(self.tab_widget.tab_list[tab])
         for t in self.tab_widget.tab_list:
             print(t.content)
-
-if __name__ == "__main__":
-    if 'mpmath' in trueskill.backends.available_backends():
-        # mpmath can be used in the current environment
-        backend = 'mpmath'
-    else:
-        backend = None
-    trueskill.setup(mu=MU, sigma=SIGMA, beta=BETA, tau=TAU, draw_probability=DRAW_PROBABILITY, backend=backend) # Es gibt kein Unentschieden
-    KickerApp().run()

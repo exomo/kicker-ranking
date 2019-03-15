@@ -16,6 +16,10 @@ try:
         except:
             uid = None
         return uid
+    
+    def getAdminToken():
+        return getToken()
+
 except:
     global fakeId
     global request_count
@@ -31,6 +35,9 @@ except:
             return uid
         else:
             request_count += 1
+    
+    def getAdminToken():
+        return str(42424242424242)
 
 class rfid():
     """
@@ -41,10 +48,13 @@ class rfid():
 
     def TryGetToken(self):
         uid = getToken()
-
         return self.Hash(uid) if uid else None
 
     def Hash(self, tokenId):
         encodedTokenId = tokenId.encode()
         digest = hashlib.sha256(encodedTokenId).hexdigest()
         return digest
+
+    def getAdminToken(self):
+        uid = getAdminToken()
+        return self.Hash(uid) if uid else None

@@ -16,6 +16,8 @@
     TabbedPanelItem:
         text: "Admin"
         AdminPage:
+            id: admin_page
+            player_list: player_page.ranking_list
 
 <PlayerPage>:
     orientation: 'vertical'
@@ -46,7 +48,7 @@
         size_hint_x: None
         size_x: dp(.2)
         text_size: self.size
-        halign: 'right'
+        halign: 'left'
         valign: 'middle'
         padding_x: dp(15)
     Label:
@@ -87,7 +89,7 @@
         size_hint_x: None
         size_x: dp(.2)
         text_size: self.size
-        halign: 'right'
+        halign: 'left'
         valign: 'middle'
         padding_x: dp(15)
     Label:
@@ -150,7 +152,6 @@
                 disabled: not root.enable_ok
                 on_release: root.on_ok()
     
-
 <GamePage>:    
     orientation: 'vertical'
     game_list: game_list
@@ -177,28 +178,32 @@
     Label:
         text: '[b]#[/b]'
         markup: True
-        size_hint_x: None
-        size_x: dp(25)
-        text_size: self.size
-        halign: 'center'
-        valign: 'middle'
-    Label:
-        text: '[b]Team 1[/b]'
-        markup: True
-        size_hint_x: 1
         text_size: self.size
         halign: 'left'
         valign: 'middle'
+        padding_x: dp(15)
+        size_hint_x: 0.1
+    Label:
+        text: '[b]Team 1[/b]'
+        markup: True
+        text_size: self.size
+        halign: 'right'
+        valign: 'middle'
+        size_hint_x: 0.5
     Label:
         text: '[b]Ergebnis[/b]'
         markup: True
-        size_hint_x: None
-        size_x: dp(25)
+        text_size: self.size
+        halign: 'center'
+        valign: 'middle'
+        size_hint_x: 0.5
     Label:
         text: '[b]Team 2[/b]'
         markup: True
-        size_hint_x: 1
-        size_x: dp(.2)
+        text_size: self.size
+        halign: 'left'
+        valign: 'middle'
+        size_hint_x: 0.5
 
 <GameListItem@BoxLayout>:
     orientation: 'horizontal'
@@ -225,7 +230,7 @@
         size_hint_x: None
         size_x: dp(25)
         text_size: self.size
-        halign: 'center'
+        halign: 'left'
         valign: 'middle'
     Label:
         text: '{player1} + {player2}'.format(player1=root.player1, player2=root.player2)
@@ -267,7 +272,7 @@
                 team: 'Team 1'
                 size_hint_x: 0.25
             Image:
-                source: 'GUI/Kicker_top.jpg'
+                source: 'src/gui/Kicker_top.png'
                 size_hint_x: 0.5
             TeamDisplay:
                 id: team2
@@ -372,12 +377,152 @@
             size_hint_y: 0.3
             on_release: root.dismiss()
 
-<AdminPage@BoxLayout>:
+<AdminPage>:
+    orientation: 'vertical'
+    admin_list: admin_list
+    AdminListHeader:
+        size_hint: 1, 0.2
+        #size_y: dp(32)
+    AdminList:
+        id: admin_list
+        viewclass: 'AdminListItem'
+        RecycleBoxLayout:
+            default_size: None, dp(35)
+            default_size_hint: 1, None
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+            spacing: dp(2)
+    Button:
+        text: "Spieler ausblenden"
+        size_hint: 1, 0.1
+        on_release: root.hide_player()    
+    Button:
+        text: "Adminrechte geben"
+        size_hint: 1, 0.1
+        on_release: root.admin_player()   
+    Button:
+        text: "Zurück zur Spieleliste"
+        size_hint: 1, 0.1
+        on_release: app.switch_tab(1)
+
+<AdminListHeader@BoxLayout>:
+    orientation: 'horizontal'
+    Label:
+        text: '[b]===========\nKicker Admins\n===========[/b]'
+        markup: True
+        #size_hint_x: None
+        #size_x: dp(32)
+        text_size: self.size
+        halign: 'center'
+        valign: 'middle'
+
+<AdminListItem@BoxLayout>:
+    orientation: 'horizontal'
+    rank: 0
+    name: ''
+    canvas.before:
+        Color:
+            # alternating colors
+            r: .5 if (self.rank % 2) else 0.3
+            g: .5 if (self.rank % 2) else 0.3
+            b: .5 if (self.rank % 2) else 0.3
+            a: 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    Label:
+        text: root.name
+        text_size: self.size
+        halign: 'center'
+        valign: 'middle'
+
+<HidePlayerPopup>:
+    title: 'Spieler ausblenden'
+    auto_dismiss: False
+    enable_ok: True
+    size_hint: None, None
+    player_name: player_name
+    size: 400, 400
+    scan_token_label_text: 'Bitte Token einscannen'
+    scan_token_label_success_text: '[color=22DD22][b]Token erfolgreich gelesen.[/b][/color]\nBitte Namen eingeben\nund bestätigen.'
+    scan_token_label_error_text: '[color=FF0000][b]Keine Adminrechte.[/b][/color]'
+ 
     BoxLayout:
         orientation: 'vertical'
+        Image:
+            source: root.display_image
+            size_hint_y: 0.5
         Label:
-            text: "Admin panel noch nicht implementiert"
-        Button:
-            text: "Zurück zur Spieleliste"
-            size_hint: 1, 0.1
-            on_release: app.switch_tab(1)
+            text: root.scan_token_label_text
+            markup: True
+            size_hint_y: 0.2
+        Label:
+            text: 'Name:'
+            size_hint: 1, .1
+        TextInput:
+            id: player_name
+            multiline: False
+            size_hint: 1, .1
+            focus: True
+            text_validate_unfocus: False
+            hint_text: 'Spielername eingeben'
+            on_text: root.validate_input()
+            on_text_validate: if root.enable_ok: root.on_ok()
+            disabled: True
+            # on_focus: root.on_focus(*args)
+        BoxLayout:
+            size_hint_y: 0.1
+            orientation: 'horizontal'
+            Button:
+                text: 'Abbrechen'
+                on_release: root.dismiss()
+            Button:
+                text: 'OK'
+                disabled: not root.enable_ok
+                on_release: root.on_ok()
+
+<AdminPlayerPopup>:
+    title: 'Spieler als Admin setzen'
+    auto_dismiss: False
+    enable_ok: True
+    size_hint: None, None
+    player_name: player_name
+    size: 400, 400
+    scan_token_label_text: 'Bitte Token einscannen'
+    scan_token_label_success_text: '[color=22DD22][b]Token erfolgreich gelesen.[/b][/color]\nBitte Namen eingeben\nund bestätigen.'
+    scan_token_label_error_text: '[color=FF0000][b]Keine Adminrechte.[/b][/color]'
+ 
+    BoxLayout:
+        orientation: 'vertical'
+        Image:
+            source: root.display_image
+            size_hint_y: 0.5
+        Label:
+            text: root.scan_token_label_text
+            markup: True
+            size_hint_y: 0.2
+        Label:
+            text: 'Name:'
+            size_hint: 1, .1
+        TextInput:
+            id: player_name
+            multiline: False
+            size_hint: 1, .1
+            focus: True
+            text_validate_unfocus: False
+            hint_text: 'Spielername eingeben'
+            on_text: root.validate_input()
+            on_text_validate: if root.enable_ok: root.on_ok()
+            disabled: True
+            # on_focus: root.on_focus(*args)
+        BoxLayout:
+            size_hint_y: 0.1
+            orientation: 'horizontal'
+            Button:
+                text: 'Abbrechen'
+                on_release: root.dismiss()
+            Button:
+                text: 'OK'
+                disabled: not root.enable_ok
+                on_release: root.on_ok()

@@ -15,7 +15,6 @@ import sqlite3
 # database file configuration
 # this should be configurable via command line arguments, but for now just use fixed file names
 kickerDB = "kicker_scores.db"
-adminDB = "kicker_admin.db"
 
 # version configuration
 current_version = 1
@@ -32,7 +31,7 @@ def update_from_0(db):
     db.execute("ALTER TABLE games RENAME TO games_old")
 
     # create new players and games tables
-    db.execute("CREATE TABLE IF NOT EXISTS players (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, token_id TEXT UNIQUE, skill_mu REAL, skill_sigma REAL)")
+    db.execute("CREATE TABLE IF NOT EXISTS players (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, token_id TEXT UNIQUE, skill_mu REAL, skill_sigma REAL, is_admin BIT DEFAULT 0, is_hidden BIT DEFAULT 0)")
     db.execute("CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, player1_id INTEGER, player2_id INTEGER, player3_id INTEGER, player4_id INTEGER, team1_score INTEGER, team2_score INTEGER)")
         
     # copy and convert data from old to new tables
@@ -40,6 +39,7 @@ def update_from_0(db):
 
     cur = db.cursor()
     games = cur.execute("SELECT id, timestamp, player1, player2, player3, player4, team1_score, team2_score FROM games_old")
+    
     def get_player_id(token):
         player_cur = db.cursor()
         player = player_cur.execute("SELECT id FROM players WHERE token_id=?", (token,)).fetchone()

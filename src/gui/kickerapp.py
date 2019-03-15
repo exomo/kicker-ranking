@@ -1,12 +1,7 @@
-""" 
-Main program for the kivy based kicker ranking gui.
-"""
+import os
 
-import time
-import sys
-
-import trueskill
-from trueskill import Rating
+import config
+from config import db, rfidReader
 
 import kivy
 kivy.require('1.10.0')
@@ -25,31 +20,7 @@ from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 
-from database import database
-from hardware import rfid
-from kicker import Game
-
-# global setup of database and rfid reader
-kickerDB = "kicker_scores.db"
-db = database.Database(kickerDB)
-db.show_players()
-
-rfidReader = rfid.rfid()
-
-# Parameters for the trueskill ranking
-
-#: Default initial mean of ratings.
-MU = 30.
-#: Default initial standard deviation of ratings.
-SIGMA = MU / 3
-#: Default distance that guarantees about 76% chance of winning.
-BETA = SIGMA / 2
-#: Default dynamic factor.
-TAU = SIGMA / 100
-#: Default draw probability of the game.
-DRAW_PROBABILITY = .0
-#: A basis to check reliability of the result.
-DELTA = 0.0001
+# from gui.kickerwidget import KickerWidget
 
 class KickerWidget(TabbedPanel):
     """Main widget of GUI, specifies basic layout."""
@@ -73,7 +44,7 @@ class RankingList(RecycleView):
         self.refresh()
 
     def refresh(self):
-        rank = db.get_all_players()
+        rank = db.get_active_players()
         self.data = [
             {
                 'name' : player.name,
@@ -83,14 +54,28 @@ class RankingList(RecycleView):
             }
             for i, player in enumerate(rank)]
 
+class AdminList(RecycleView):
+    def __init__(self, **kwargs):
+        super(AdminList, self).__init__(**kwargs)
+        self.refresh()
+
+    def refresh(self):
+        rank = db.get_admin_players()
+        self.data = [
+            {
+                'name' : player.name,
+                'rank' : i+1,
+            }
+            for i, player in enumerate(rank)]
+
 class NewPlayerPopup(Popup):
     enable_ok = BooleanProperty()
     player_name = ObjectProperty()
-    token_id = StringProperty() 
+    token_id = StringProperty()
     scan_token_label_text = StringProperty()
     scan_token_label_error_text = StringProperty()
     scan_token_label_success_text = StringProperty()
-    display_image = StringProperty('empty.png')
+    display_image = StringProperty('gui/empty.png')
 
     def __init__(self, ranking_list, **kwargs):
         super(NewPlayerPopup, self).__init__(**kwargs)
@@ -101,21 +86,21 @@ class NewPlayerPopup(Popup):
         token = rfidReader.TryGetToken()
         if token:
             # Check if token is already registered
-            if db.get_player(token) is None:
-                self.display_image = 'check.png'
+            if db.get_player_by_token(token) is None:
+                self.display_image = 'gui/check.png'
                 self.scan_token_label_text = self.scan_token_label_success_text
                 self.token_id = token
-                self.timer.cancel() 
+                self.timer.cancel()
                 self.player_name.disabled = False
                 self.player_name.focus = True
                 self.validate_input()
             else:
-                self.display_image = 'error.png'
+                self.display_image = 'gui/error.png'
                 self.scan_token_label_text = self.scan_token_label_error_text
-                print("Player already exists! Please scan another token.")     
+                print("Player already exists! Please scan another token.")
 
     def on_ok(self):
-        db.add_new_player(self.player_name.text, self.token_id)
+        db.add_new_player(self.player_name.text, self.token_id, 0, 0)
         self.ranking_list.refresh()
         self.dismiss()
 
@@ -177,8 +162,8 @@ class GameList(RecycleView):
 
 class NewGamePopup(Popup):
     """Popup to enter a new game"""
-    team1 = ObjectProperty() 
-    team2 = ObjectProperty() 
+    team1 = ObjectProperty()
+    team2 = ObjectProperty()
 
     def __init__(self, game_list, player_list, **kwargs):
         super(NewGamePopup, self).__init__(**kwargs)
@@ -191,7 +176,7 @@ class NewGamePopup(Popup):
     def on_interval(self, time_elapsed):
         token = rfidReader.TryGetToken()
         if token is not None:
-            player = db.get_player(token)
+            player = db.get_player_by_token(token)
             if player is not None and not player.tokenID in [p.tokenID for p in self.players]:
                 self.players.append(player)
                 player_number = len(self.players)
@@ -218,7 +203,7 @@ class NewGamePopup(Popup):
             (result1 != result2):
 
             popup = ConfirmNewGamePopup(
-                team1_score=result1, 
+                team1_score=result1,
                 team2_score=result2,
                 player1=self.team1.player1,
                 player2=self.team1.player2,
@@ -233,7 +218,7 @@ class NewGamePopup(Popup):
 
     def on_dismiss(self):
         self.timer.cancel()
-    
+
     def on_confirm(self, sender):
         """bound to the on_confirm event of the confirmation dialog,
            stores the game into the database"""
@@ -279,6 +264,117 @@ class ConfirmNewGamePopup(Popup):
 class GameUnplausiblePopup(Popup):
     pass
 
+class AdminPage(BoxLayout):
+    player_list = ObjectProperty()
+    admin_list = ObjectProperty()
+
+    def hide_player(self):
+        """show popup to hide a player"""
+        popup = HidePlayerPopup(player_list=self.player_list)
+        popup.open()
+        self.player_list.refresh()
+
+    def admin_player(self):
+        """show popup to set a player as an admin"""
+        popup = AdminPlayerPopup(admin_list=self.admin_list)
+        popup.open()
+        self.admin_list.refresh()
+
+class HidePlayerPopup(Popup):
+    enable_ok = BooleanProperty()
+    player_name = ObjectProperty()
+    scan_token_label_text = StringProperty()
+    scan_token_label_error_text = StringProperty()
+    scan_token_label_success_text = StringProperty()
+    display_image = StringProperty('gui/empty.png')
+
+    def __init__(self, player_list, **kwargs):
+        super(HidePlayerPopup, self).__init__(**kwargs)
+        self.player_list = player_list
+        self.timer = Clock.schedule_interval(self.on_interval, 0.1)
+
+    def on_interval(self, time_elapsed):
+        token = rfidReader.getAdminToken()
+        if token is not None:
+            if db.is_admin(token):
+                #print("You are an admin.")
+                self.display_image = 'gui/check.png'
+                self.scan_token_label_text = self.scan_token_label_success_text
+                self.timer.cancel()
+                self.player_name.disabled = False
+                self.player_name.focus = True
+                self.validate_input()
+            else:
+                self.scan_token_label_text = self.scan_token_label_error_text
+                #print("You are not an admin!")
+
+    def on_ok(self):
+        db.retire_player(db.get_player_by_name(self.player_name.text))
+        self.player_list.refresh()
+        self.dismiss()
+
+    def on_dismiss(self):
+        self.timer.cancel()
+
+    def validate_input(self):
+        #print(self.player_name.text)
+        if self.player_name.text:
+            player = db.get_player_by_name(self.player_name.text)
+            if player is None:
+                self.enable_ok = False
+            else:
+                self.enable_ok = True
+        else:
+            self.enable_ok = False
+
+class AdminPlayerPopup(Popup):
+    enable_ok = BooleanProperty()
+    player_name = ObjectProperty()
+    scan_token_label_text = StringProperty()
+    scan_token_label_error_text = StringProperty()
+    scan_token_label_success_text = StringProperty()
+    display_image = StringProperty('gui/empty.png')
+
+    def __init__(self, admin_list, **kwargs):
+        super(AdminPlayerPopup, self).__init__(**kwargs)
+        self.admin_list = admin_list
+        self.timer = Clock.schedule_interval(self.on_interval, 0.1)
+
+    def on_interval(self, time_elapsed):
+        token = rfidReader.getAdminToken()
+        if token is not None:
+            if db.is_admin(token):
+                #print("You are an admin.")
+                self.display_image = 'gui/check.png'
+                self.scan_token_label_text = self.scan_token_label_success_text
+                self.timer.cancel()
+                self.player_name.disabled = False
+                self.player_name.focus = True
+                self.validate_input()
+            else:
+                self.scan_token_label_text = self.scan_token_label_error_text
+                #print("You are not an admin!")
+
+    def on_ok(self):
+        db.set_as_admin(db.get_player_by_name(self.player_name.text))
+        self.admin_list.refresh()
+        self.dismiss()
+
+    def on_dismiss(self):
+        self.timer.cancel()
+
+    def validate_input(self):
+        #print(self.player_name.text)
+        if self.player_name.text:
+            player = db.get_player_by_name(self.player_name.text)
+            if player is None:
+                self.enable_ok = False
+            else:
+                self.enable_ok = True
+        else:
+            self.enable_ok = False
+
+
 class KickerApp(App):
     """
     Main class of GUI, specifies basic layout.
@@ -286,13 +382,14 @@ class KickerApp(App):
     def build(self):
         # workaround for some issues with auto loading the kv file
         # - on windows, the file is read with wrong encoding, this is solved by loading the file
-        #   explicitly and passing the correctly read file contents to the builder instead of 
+        #   explicitly and passing the correctly read file contents to the builder instead of
         #   relying on the automatic loading of kv files
         # - on linux the kv file is only auto-loaded if it is in the current directory, which would
         #   be the directory above GUI, but we want the kv to be inside GUI
         # - in windows the automatic load would also happen from inside GUI if the kv file name was
         #   like the App (Kicker.kv), the file must have a different name to prevent the auto load
-        with open("GUI/KickerUi.kv", encoding='utf8') as kvFile:
+        kv_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'KickerUi.kv')
+        with open(kv_filename, encoding='utf8') as kvFile:
             Builder.load_string(kvFile.read())
         self.title = "~ ITK Kicker Rangliste ~"
         self.tab_widget = KickerWidget()
@@ -302,12 +399,3 @@ class KickerApp(App):
         self.tab_widget.switch_to(self.tab_widget.tab_list[tab])
         for t in self.tab_widget.tab_list:
             print(t.content)
-
-if __name__ == "__main__":
-    if 'mpmath' in trueskill.backends.available_backends():
-        # mpmath can be used in the current environment
-        backend = 'mpmath'
-    else:
-        backend = None
-    trueskill.setup(mu=MU, sigma=SIGMA, beta=BETA, tau=TAU, draw_probability=DRAW_PROBABILITY, backend=backend) # Es gibt kein Unentschieden
-    KickerApp().run()

@@ -1,7 +1,8 @@
 
 import sqlite3
 from kicker import player
-from kicker import Game
+from kicker.game import Game
+from kicker.player import Player
 import trueskill
 import os.path
 
@@ -99,7 +100,7 @@ class Database():
         cur = self.database.cursor()
         cur.execute("SELECT * FROM players ORDER BY skill_mu DESC, skill_sigma ASC")
         return [self.create_player(p) for p in cur.fetchall()]
-    
+
     def get_active_players(self):
         cur = self.database.cursor()
         cur.execute("SELECT * FROM players WHERE is_hidden=0 ORDER BY skill_mu DESC, skill_sigma ASC")
@@ -125,7 +126,7 @@ class Database():
         self.database.commit()
 
     def create_player(self, db_result):
-        p = player.Player()
+        p = Player()
         p.id = db_result[0]
         p.name = db_result[1]
         p.tokenID = db_result[2]
@@ -174,27 +175,27 @@ class Database():
 
         games = []
         for entry in cur:
-            game = Game.Game()
+            game = Game()
             game.time = entry[0]
             try:
                 game.player1 = self.get_player(entry[1])
             except:
-                game.player1 = player.Player()
+                game.player1 = Player()
                 game.player1.name = "Unregistered Player"
             try:
                 game.player2 = self.get_player(entry[2])
             except:
-                game.player2 = player.Player()
+                game.player2 = Player()
                 game.player2.name = "Unregistered Player"
             try:
                 game.player3 = self.get_player(entry[3])
             except:
-                game.player3 = player.Player()
+                game.player3 = Player()
                 game.player3.name = "Unregistered Player"
             try:
                 game.player4 = self.get_player(entry[4])
             except:
-                game.player4 = player.Player()
+                game.player4 = Player()
                 game.player4.name = "Unregistered Player"
             game.scoreTeam1 = entry[5]
             game.scoreTeam2 = entry[6]
@@ -221,27 +222,27 @@ class Database():
         if result is None:
             return None
 
-        game = Game.Game()
+        game = Game()
         game.time = result[0]
         try:
             game.player1 = self.get_player(result[1])
         except:
-            game.player1 = player.Player()
+            game.player1 = Player()
             game.player1.name = "Unregistered Player"
         try:
             game.player2 = self.get_player(result[2])
         except:
-            game.player2 = player.Player()
+            game.player2 = Player()
             game.player2.name = "Unregistered Player"
         try:
             game.player3 = self.get_player(result[3])
         except:
-            game.player3 = player.Player()
+            game.player3 = Player()
             game.player3.name = "Unregistered Player"
         try:
             game.player4 = self.get_player(result[4])
         except:
-            game.player4 = player.Player()
+            game.player4 = Player()
             game.player4.name = "Unregistered Player"
         game.scoreTeam1 = result[5]
         game.scoreTeam2 = result[6]

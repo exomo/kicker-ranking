@@ -2,6 +2,7 @@ import os
 
 import config
 from config import db, rfidReader
+from kicker.game import Game
 
 import kivy
 kivy.require('1.10.0')
@@ -226,7 +227,7 @@ class NewGamePopup(Popup):
             winner_team = 1
         else:
             winner_team = 2
-        game = Game.Game()
+        game = Game()
         game.player1 = self.players[0]
         game.player2 = self.players[1]
         game.player3 = self.players[2]

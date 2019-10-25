@@ -345,7 +345,6 @@ class AdminPlayerPopup(Popup):
         token = rfidReader.getAdminToken()
         if token is not None:
             if db.is_admin(token):
-                #print("You are an admin.")
                 self.display_image = 'gui/check.png'
                 self.scan_token_label_text = self.scan_token_label_success_text
                 self.timer.cancel()
@@ -354,10 +353,13 @@ class AdminPlayerPopup(Popup):
                 self.validate_input()
             else:
                 self.scan_token_label_text = self.scan_token_label_error_text
-                #print("You are not an admin!")
 
     def on_ok(self):
-        db.set_as_admin(db.get_player_by_name(self.player_name.text))
+        player = db.get_player_by_name(self.player_name.text)
+        if(db.is_admin(player.tokenID)):
+            db.set_admin_status(player,False)    
+        else:
+            db.set_admin_status(player,True)
         self.admin_list.refresh()
         self.dismiss()
 
@@ -365,7 +367,6 @@ class AdminPlayerPopup(Popup):
         self.timer.cancel()
 
     def validate_input(self):
-        #print(self.player_name.text)
         if self.player_name.text:
             player = db.get_player_by_name(self.player_name.text)
             if player is None:

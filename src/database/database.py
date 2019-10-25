@@ -91,9 +91,9 @@ class Database():
         else:
             return False
 
-    def set_as_admin(self, p):
-        """tags a player as an admin"""
-        self.database.execute("UPDATE players SET is_admin=? WHERE id=?", (1, p.id))
+    def set_admin_status(self, p, status):
+        """tags or untags a player as an admin"""
+        self.database.execute("UPDATE players SET is_admin=? WHERE id=?", (status, p.id))
         self.database.commit()
 
     def get_all_players(self):
